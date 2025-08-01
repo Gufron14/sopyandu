@@ -188,7 +188,7 @@
                                                 </div>
                                                 
 
-                                                <div class="form-group">S
+                                                <div class="form-group">
                                                     <label for="father_birth_place">Tempat Lahir Ayah <span
                                                             class="text-danger">*</span></label>
                                                     <input id="father_birth_place" type="text"

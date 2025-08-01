@@ -27,11 +27,11 @@ return new class extends Migration
             $table->float('cholesterol')->nullable();
             $table->string('fundus_height')->nullable();
             $table->string('fetal_heart_rate')->nullable();
-            $table->enum('status_vaksin', ['Sudah', 'Sekarang', 'Tidak']);
+            $table->enum('status_vaksin', ['Sudah', 'Sekarang', 'Tidak'])->default('Tidak');
             $table->enum('jenis_vaksin', ['Wajib', 'Tambahan', 'Khusus'])->nullable();
             $table->unsignedBigInteger('vaccine_id')->nullable(); // Relasi ke tabel vaccines
-            $table->enum('fetal_presentation', ['Kepala', 'Bokong', 'Lainnya']);
-            $table->enum('edema', ['Tidak', 'Ringan', 'Sedang', 'Berat']);
+            $table->enum('fetal_presentation', ['Kepala', 'Bokong', 'Lainnya'])->nullable();
+            $table->enum('edema', ['Tidak', 'Ringan', 'Sedang', 'Berat'])->nullable();
             $table->text('notes')->nullable();
             $table->unsignedBigInteger('officer_id')->nullable();
             $table->timestamps();

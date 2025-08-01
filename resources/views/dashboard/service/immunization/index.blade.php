@@ -31,7 +31,7 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                @if (Auth::user() && Auth::user()->role !== 'family_parent')
+                                @if (Auth::user() && Auth::user()->role === 'admin' ||  Auth::user() && Auth::user()->role !== 'family_parent')
                                     <form method="GET" action="{{ route('immunization-data.index') }}"
                                         style="width: 10rem">
                                         <div class="input-group">
@@ -52,7 +52,7 @@
                                 @endif
 
                                 <div class="d-flex justify-content-end align-items-center ml-auto" style="gap: .5rem">
-                                    @if (Auth::user() && Auth::user()->role !== 'family_parent')
+                                    @if (Auth::user()->role !== 'family_parent')
                                         <button type="button" data-toggle="modal" data-target="#reportModal"
                                             class="btn btn-success">
                                             <i class="fas fa-print mr-1"></i> Cetak Laporan
@@ -60,10 +60,11 @@
                                     @endif
 
                                     @if (Auth::user() &&
-                                            (Auth::user()->role !== 'family_parent' &&
-                                                (Auth::user()->officer_id !== null &&
-                                                    Auth::user()->officers->position !== 'Lurah' &&
-                                                    Auth::user()->officers->position !== 'Kepala Lingkungan')))
+                                            Auth::user()->role !== 'admin' &&
+                                            Auth::user()->role !== 'family_parent' &&
+                                            (Auth::user()->officer_id !== null &&
+                                                Auth::user()->officers->position !== 'Lurah' &&
+                                                Auth::user()->officers->position !== 'Kepala Lingkungan'))
                                         <a href="{{ url('/immunization-data/create') }}" class="btn btn-primary">Tambah</a>
                                     @endif
 
@@ -189,6 +190,20 @@
                                                                 class="btn btn-info" data-toggle="tooltip" title="Detail">
                                                                 <i class="fas fa-info-circle"></i>
                                                             </a>
+                                                            @if (Auth::user()->officers && Auth::user()->officers->position === 'midwife')
+                                                                <a href="{{ url("/immunization-data/{$immunization->id}/edit") }}"
+                                                                    class="btn btn-warning" data-toggle="tooltip" title="Edit">
+                                                                    <i class="fas fa-edit"></i>
+                                                                </a>
+                                                                <form action="{{ url("/immunization-data/{$immunization->id}") }}" method="POST" style="display: inline-block;"
+                                                                    onsubmit="return confirm('Yakin ingin menghapus data imunisasi ini?');">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button type="submit" class="btn btn-danger" data-toggle="tooltip" title="Hapus">
+                                                                        <i class="fas fa-trash"></i>
+                                                                    </button>
+                                                                </form>
+                                                            @endif
                                                         </div>
                                                     </td>
                                                 @endif

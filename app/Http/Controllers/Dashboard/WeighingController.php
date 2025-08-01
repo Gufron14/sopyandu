@@ -32,15 +32,10 @@ class WeighingController extends Controller
         $currentYear = now()->year;
 
         // Ambil semua tahun yang tersedia dari database (DESC untuk cari tahun terbaru)
-        $availableYears = Weighing::selectRaw('YEAR(weighing_date) as year')
-            ->distinct()
-            ->orderByDesc('year')
-            ->pluck('year');
+        $availableYears = Weighing::selectRaw('YEAR(weighing_date) as year')->distinct()->orderByDesc('year')->pluck('year');
 
         // Tentukan tahun yang dipilih
-        $selectedYear = $availableYears->contains($currentYear)
-            ? $currentYear
-            : $availableYears->first(); // Ambil tahun terbaru jika tahun saat ini tidak ada
+        $selectedYear = $availableYears->contains($currentYear) ? $currentYear : $availableYears->first(); // Ambil tahun terbaru jika tahun saat ini tidak ada
 
         // Hapus cache berdasarkan tahun yang dipilih
         Cache::forget("weighing_children_{$selectedYear}");
@@ -72,10 +67,7 @@ class WeighingController extends Controller
             }
         } else {
             // Ambil semua tahun unik dari data weighing (DESC agar tahun terbaru di atas)
-            $availableYears = Weighing::selectRaw('YEAR(weighing_date) as year')
-                ->distinct()
-                ->orderByDesc('year')
-                ->pluck('year');
+            $availableYears = Weighing::selectRaw('YEAR(weighing_date) as year')->distinct()->orderByDesc('year')->pluck('year');
 
             $currentYear = now()->year;
             $requestedYear = request('year'); // Tangkap input dari dropdown (jika ada)
@@ -95,14 +87,18 @@ class WeighingController extends Controller
         return view('dashboard.service.weighing.index', compact('weighings', 'availableYears', 'selectedYear'));
     }
 
+    public function show($id)
+    {
+        $weighing = Weighing::with(['familyChildren.familyParents', 'officers'])->findOrFail($id);
+
+        return view('dashboard.service.weighing.show', compact('weighing'));
+    }
+
     public function create()
     {
         $this->checkOfficerPosition();
 
-        $children = FamilyChildren::with('familyParents')
-            ->select('id', 'nik', 'fullname', 'gender', 'birth_place', 'date_of_birth', 'parent_id')
-            ->orderBy('fullname', 'asc')
-            ->get();
+        $children = FamilyChildren::with('familyParents')->select('id', 'nik', 'fullname', 'gender', 'birth_place', 'date_of_birth', 'parent_id')->orderBy('fullname', 'asc')->get();
 
         return view('dashboard.service.weighing.create', compact('children'));
     }
@@ -152,17 +148,16 @@ class WeighingController extends Controller
 
         try {
             // Check for existing record first
-            $existingWeighing = Weighing::where('children_id', $request->children_id)
-                ->where('weighing_date', $request->weighing_date)
-                ->first();
+            $existingWeighing = Weighing::where('children_id', $request->children_id)->where('weighing_date', $request->weighing_date)->first();
 
             if ($existingWeighing) {
                 $indonesianDateFormat = Carbon::parse($request->weighing_date)->locale('id')->isoFormat('D MMMM YYYY');
                 Log::info('Duplicate weighing record detected:', [
                     'children_id' => $request->children_id,
-                    'weighing_date' => $request->weighing_date
+                    'weighing_date' => $request->weighing_date,
                 ]);
-                return back()->withErrors(['children_id' => "Data penimbangan untuk anak ini pada tanggal {$indonesianDateFormat} sudah ada."])
+                return back()
+                    ->withErrors(['children_id' => "Data penimbangan untuk anak ini pada tanggal {$indonesianDateFormat} sudah ada."])
                     ->withInput();
             }
 
@@ -184,17 +179,16 @@ class WeighingController extends Controller
             // Clear cache
             $this->clearWeighingCache();
 
-            return redirect(url('/weighing-data'))->with('success', "Data berhasil ditambahkan.");
+            return redirect(url('/weighing-data'))->with('success', 'Data berhasil ditambahkan.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation error:', ['errors' => $e->errors()]);
             return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             Log::error('Error creating weighing record:', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            return back()->with('error', 'Data gagal ditambahkan. Silakan coba kembali.')
-                ->withInput();
+            return back()->with('error', 'Data gagal ditambahkan. Silakan coba kembali.')->withInput();
         }
     }
 
@@ -204,120 +198,109 @@ class WeighingController extends Controller
 
         $weighing = Weighing::findOrFail($id);
 
-        $children = FamilyChildren::with('familyParents')
-            ->select('id', 'nik', 'fullname', 'gender', 'birth_place', 'date_of_birth', 'parent_id')
-            ->orderBy('fullname', 'asc')
-            ->get();
+        $children = FamilyChildren::with('familyParents')->select('id', 'nik', 'fullname', 'gender', 'birth_place', 'date_of_birth', 'parent_id')->orderBy('fullname', 'asc')->get();
 
         return view('dashboard.service.weighing.edit', compact('weighing', 'children'));
     }
 
- public function update(Request $request, $id)
-{
-    $this->checkOfficerPosition();
+    public function update(Request $request, $id)
+    {
+        $this->checkOfficerPosition();
 
-    $weighing = Weighing::findOrFail($id);
+        $weighing = Weighing::findOrFail($id);
 
-    $rules = [
-        'children_id' => 'required',
-        'weighing_date' => 'required|date',
-        'age_in_checks' => 'required',
-        'weight' => 'required|numeric|min:0',
-        'height' => 'required|numeric|min:0',
-        'head_circumference' => 'required|numeric|min:0',
-        'arm_circumference' => 'required|numeric|min:0',
-        'notes' => 'nullable|string|max:255',
-        'officer_id' => 'required',
-    ];
+        $rules = [
+            'children_id' => 'required',
+            'weighing_date' => 'required|date',
+            'age_in_checks' => 'required',
+            'weight' => 'required|numeric|min:0',
+            'height' => 'required|numeric|min:0',
+            'head_circumference' => 'required|numeric|min:0',
+            'arm_circumference' => 'required|numeric|min:0',
+            'notes' => 'nullable|string|max:255',
+            'officer_id' => 'required',
+        ];
 
-    $messages = [
-        'children_id.required' => 'Nama anak wajib dipilih.',
-        'weighing_date.required' => 'Tanggal penimbangan wajib diisi.',
-        'weighing_date.date' => 'Tanggal penimbangan harus berupa tanggal yang valid',
-        'age_in_checks.required' => 'Usia saat penimbangan wajib diisi.',
-        'weight.required' => 'Berat badan wajib diisi.',
-        'weight.numeric' => 'Berat badan harus berupa angka valid (kg).',
-        'weight.min' => 'Berat badan tidak boleh kurang dari 0.',
-        'height.required' => 'Tinggi badan wajib diisi.',
-        'height.numeric' => 'Tinggi badan harus berupa angka valid (cm).',
-        'height.min' => 'Tinggi badan tidak boleh kurang dari 0.',
-        'head_circumference.required' => 'Ukuran lingkar kepala wajib diisi.',
-        'head_circumference.numeric' => 'Ukuran lingkar kepala harus berupa angka valid (cm).',
-        'head_circumference.min' => 'Ukuran lingkar kepala tidak boleh kurang dari 0.',
-        'arm_circumference.required' => 'Ukuran lingkar lengan wajib diisi.',
-        'arm_circumference.numeric' => 'Ukuran lingkar lengan harus berupa angka valid (cm).',
-        'arm_circumference.min' => 'Ukuran lingkar lengan tidak boleh kurang dari 0.',
-        'notes.max' => 'Keterangan maksimal 255 karakter.',
-        'officer_id.required' => 'Petugas wajib diisi.',
-    ];
+        $messages = [
+            'children_id.required' => 'Nama anak wajib dipilih.',
+            'weighing_date.required' => 'Tanggal penimbangan wajib diisi.',
+            'weighing_date.date' => 'Tanggal penimbangan harus berupa tanggal yang valid',
+            'age_in_checks.required' => 'Usia saat penimbangan wajib diisi.',
+            'weight.required' => 'Berat badan wajib diisi.',
+            'weight.numeric' => 'Berat badan harus berupa angka valid (kg).',
+            'weight.min' => 'Berat badan tidak boleh kurang dari 0.',
+            'height.required' => 'Tinggi badan wajib diisi.',
+            'height.numeric' => 'Tinggi badan harus berupa angka valid (cm).',
+            'height.min' => 'Tinggi badan tidak boleh kurang dari 0.',
+            'head_circumference.required' => 'Ukuran lingkar kepala wajib diisi.',
+            'head_circumference.numeric' => 'Ukuran lingkar kepala harus berupa angka valid (cm).',
+            'head_circumference.min' => 'Ukuran lingkar kepala tidak boleh kurang dari 0.',
+            'arm_circumference.required' => 'Ukuran lingkar lengan wajib diisi.',
+            'arm_circumference.numeric' => 'Ukuran lingkar lengan harus berupa angka valid (cm).',
+            'arm_circumference.min' => 'Ukuran lingkar lengan tidak boleh kurang dari 0.',
+            'notes.max' => 'Keterangan maksimal 255 karakter.',
+            'officer_id.required' => 'Petugas wajib diisi.',
+        ];
 
-    $existingWeighing = Weighing::where('children_id', $request->children_id)
-        ->where('weighing_date', $request->weighing_date)
-        ->where('id', '!=', $id)
-        ->first();
+        $existingWeighing = Weighing::where('children_id', $request->children_id)->where('weighing_date', $request->weighing_date)->where('id', '!=', $id)->first();
 
-    if ($existingWeighing) {
-        $indonesianDateFormat = Carbon::parse($request->weighing_date)->locale('id')->isoFormat('D MMMM YYYY');
-        return back()->withErrors(['children_id' => "Data penimbangan untuk anak ini pada tanggal {$indonesianDateFormat} sudah ada."])
-            ->withInput();
-    }
-
-    $data = $request->validate($rules, $messages);
-    $data['weighing_date'] = Carbon::parse($data['weighing_date'])->format('Y-m-d');
-
-    try {
-        // Update weighing record first
-        $weighing->update([
-            'children_id' => $data['children_id'],
-            'weighing_date' => $data['weighing_date'],
-            'age_in_checks' => $data['age_in_checks'],
-            'weight' => $data['weight'],
-            'height' => $data['height'],
-            'head_circumference' => $data['head_circumference'],
-            'arm_circumference' => $data['arm_circumference'],
-            'notes' => $data['notes'],
-            'officer_id' => $data['officer_id'],
-        ]);
-
-        // Refresh the model to ensure we have the latest data
-        $weighing->refresh();
-
-        // Calculate all anthropometric measurements using WHO standards
-        $measurements = $weighing->calculateAllMeasurements();
-
-        // Determine overall nutrition status based on WHO guidelines
-        $nutritionStatuses = array_filter([
-            $measurements['bb_u']['status'] ?? null,
-            $measurements['tb_u']['status'] ?? null,
-            $measurements['bb_tb']['status'] ?? null,
-            $measurements['imt_u']['status'] ?? null
-        ]);
-
-        // Determine overall status prioritizing the worst condition
-        $overallStatus = 'Baik'; // Default status
-        if (in_array('Buruk', $nutritionStatuses)) {
-            $overallStatus = 'Buruk';
-        } elseif (in_array('Kurang', $nutritionStatuses)) {
-            $overallStatus = 'Kurang';
-        } elseif (in_array('Lebih', $nutritionStatuses)) {
-            $overallStatus = 'Lebih';
+        if ($existingWeighing) {
+            $indonesianDateFormat = Carbon::parse($request->weighing_date)->locale('id')->isoFormat('D MMMM YYYY');
+            return back()
+                ->withErrors(['children_id' => "Data penimbangan untuk anak ini pada tanggal {$indonesianDateFormat} sudah ada."])
+                ->withInput();
         }
 
-        // Update the weighing record with the calculated nutrition status
-        $weighing->update([
-            'nutrition_status' => $overallStatus
-        ]);
+        $data = $request->validate($rules, $messages);
+        $data['weighing_date'] = Carbon::parse($data['weighing_date'])->format('Y-m-d');
 
-        // Clear cache
-        $this->clearWeighingCache();
+        try {
+            // Update weighing record first
+            $weighing->update([
+                'children_id' => $data['children_id'],
+                'weighing_date' => $data['weighing_date'],
+                'age_in_checks' => $data['age_in_checks'],
+                'weight' => $data['weight'],
+                'height' => $data['height'],
+                'head_circumference' => $data['head_circumference'],
+                'arm_circumference' => $data['arm_circumference'],
+                'notes' => $data['notes'],
+                'officer_id' => $data['officer_id'],
+            ]);
 
-        return redirect(url('/weighing-data'))->with('success', "Data berhasil diperbarui.");
-    } catch (\Exception $e) {
-        Log::error('Error: ' . $e->getMessage());
-        return back()->with('error', 'Data gagal diperbarui. Silakan coba kembali.');
+            // Refresh the model to ensure we have the latest data
+            $weighing->refresh();
+
+            // Calculate all anthropometric measurements using WHO standards
+            $measurements = $weighing->calculateAllMeasurements();
+
+            // Determine overall nutrition status based on WHO guidelines
+            $nutritionStatuses = array_filter([$measurements['bb_u']['status'] ?? null, $measurements['tb_u']['status'] ?? null, $measurements['bb_tb']['status'] ?? null, $measurements['imt_u']['status'] ?? null]);
+
+            // Determine overall status prioritizing the worst condition
+            $overallStatus = 'Baik'; // Default status
+            if (in_array('Buruk', $nutritionStatuses)) {
+                $overallStatus = 'Buruk';
+            } elseif (in_array('Kurang', $nutritionStatuses)) {
+                $overallStatus = 'Kurang';
+            } elseif (in_array('Lebih', $nutritionStatuses)) {
+                $overallStatus = 'Lebih';
+            }
+
+            // Update the weighing record with the calculated nutrition status
+            $weighing->update([
+                'nutrition_status' => $overallStatus,
+            ]);
+
+            // Clear cache
+            $this->clearWeighingCache();
+
+            return redirect(url('/weighing-data'))->with('success', 'Data berhasil diperbarui.');
+        } catch (\Exception $e) {
+            Log::error('Error: ' . $e->getMessage());
+            return back()->with('error', 'Data gagal diperbarui. Silakan coba kembali.');
+        }
     }
-}
-
 
     public function destroy($id)
     {
@@ -357,8 +340,7 @@ class WeighingController extends Controller
         $nutrition_status = $data['nutrition_status'];
 
         // Query data penimbangan
-        $query = Weighing::with(['familyChildren', 'officers'])
-            ->whereBetween('weighing_date', [$early_period, $final_period]);
+        $query = Weighing::with(['familyChildren', 'officers'])->whereBetween('weighing_date', [$early_period, $final_period]);
 
         if ($nutrition_status !== 'Semua') {
             $query->where('nutrition_status', $nutrition_status);
@@ -375,11 +357,7 @@ class WeighingController extends Controller
 
     public function getWeighingStatistics($year)
     {
-        $monthlyStats = Weighing::selectRaw('MONTH(weighing_date) as month, COUNT(DISTINCT children_id) as total')
-            ->whereYear('weighing_date', $year)
-            ->groupByRaw('MONTH(weighing_date)')
-            ->orderByRaw('MONTH(weighing_date)')
-            ->pluck('total', 'month');
+        $monthlyStats = Weighing::selectRaw('MONTH(weighing_date) as month, COUNT(DISTINCT children_id) as total')->whereYear('weighing_date', $year)->groupByRaw('MONTH(weighing_date)')->orderByRaw('MONTH(weighing_date)')->pluck('total', 'month');
 
         $data = [];
         for ($i = 1; $i <= 12; $i++) {
@@ -397,10 +375,7 @@ class WeighingController extends Controller
         $statuses = ['Baik', 'Buruk', 'Kurang', 'Lebih'];
 
         // Ambil data penimbangan per bulan per status
-        $monthlyStats = Weighing::selectRaw('MONTH(weighing_date) as month, nutrition_status, COUNT(DISTINCT children_id) as total')
-            ->whereYear('weighing_date', $year)
-            ->groupByRaw('MONTH(weighing_date), nutrition_status')
-            ->get();
+        $monthlyStats = Weighing::selectRaw('MONTH(weighing_date) as month, nutrition_status, COUNT(DISTINCT children_id) as total')->whereYear('weighing_date', $year)->groupByRaw('MONTH(weighing_date), nutrition_status')->get();
 
         // Inisialisasi struktur data bulanan
         $data = [];
@@ -444,19 +419,25 @@ class WeighingController extends Controller
         $user = Auth::user();
 
         if (!$user || $user->role !== 'family_parent') {
-            return response()->json([
-                'data' => [],
-                'message' => 'Unauthorized',
-            ], 403);
+            return response()->json(
+                [
+                    'data' => [],
+                    'message' => 'Unauthorized',
+                ],
+                403,
+            );
         }
 
         $parent = FamilyParent::find($user->parent_id);
 
         if (!$parent) {
-            return response()->json([
-                'data' => [],
-                'message' => 'Parent not found',
-            ], 404);
+            return response()->json(
+                [
+                    'data' => [],
+                    'message' => 'Parent not found',
+                ],
+                404,
+            );
         }
 
         $children = FamilyChildren::where('parent_id', $parent->id)->get();
@@ -486,7 +467,7 @@ class WeighingController extends Controller
         }
 
         return response()->json([
-            'data' => $result
+            'data' => $result,
         ]);
     }
 }

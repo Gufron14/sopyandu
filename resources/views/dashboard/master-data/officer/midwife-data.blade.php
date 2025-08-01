@@ -25,7 +25,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            @if (auth()->check() && auth()->user()->role == 'admin')
+                            @if (auth()->check() && auth()->user()->role == 'admin' || auth()->user()->role == 'midwife')
                                 <div class=" d-flex justify-content-between align-items-center mb-4">
                                     @include('components.role-list')
 

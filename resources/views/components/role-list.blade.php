@@ -9,7 +9,7 @@
             <option value="{{ url('/officer-data') }}" {{ $currentUrl == url('/officer-data') ? 'selected' : '' }}>Semua
             </option>
             <option value="{{ url('/admin/officer-data') }}"
-                {{ $currentUrl == url('/admin/officer-data') ? 'selected' : '' }}>Admin</option>
+                {{ $currentUrl == url('/admin/officer-data') ? 'selected' : '' }}>Kader</option>
             <option value="{{ url('/midwife/officer-data') }}"
                 {{ $currentUrl == url('/midwife/officer-data') ? 'selected' : '' }}>Bidan</option>
             <option value="{{ url('/officer/officer-data') }}"

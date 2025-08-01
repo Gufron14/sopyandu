@@ -51,23 +51,16 @@
                                 @endif
 
                                 <div class="d-flex justify-content-end align-items-center ml-auto" style="gap: .5rem">
-                                    @if (Auth::user() && Auth::user()->role !== 'family_parent')
+
+                                    @php
+                                        $userCheckForThisPage = Auth::user() && Auth::user()->role === 'admin';
+                                    @endphp
+
+                                    @if ($userCheckForThisPage)
                                         <button type="button" data-toggle="modal" data-target="#reportModal"
                                             class="btn btn-success">
                                             <i class="fas fa-print mr-1"></i> Cetak Laporan
                                         </button>
-                                    @endif
-
-                                    @php
-                                        $userCheckForThisPage =
-                                            Auth::user() &&
-                                            (Auth::user()->role !== 'family_parent' &&
-                                                (Auth::user()->officer_id !== null &&
-                                                    Auth::user()->officers->position !== 'Lurah' &&
-                                                    Auth::user()->officers->position !== 'Kepala Lingkungan'));
-                                    @endphp
-
-                                    @if ($userCheckForThisPage)
                                         <a href="/weighing-data/create" class="btn btn-primary">Tambah</a>
                                     @endif
                                 </div>
@@ -93,6 +86,7 @@
                                             <th>Lingkar Kepala (cm)</th>
                                             <th>Lingkar Lengan (cm)</th>
                                             <th>Status Gizi</th>
+                                            <th>Status Vaksin</th>
                                             <th>Keterangan</th>
                                             <th>Nama Petugas</th>
                                             <th>Jabatan Petugas</th>
@@ -138,6 +132,7 @@
                                                 <td class="text-right">{{ number_format($weighing->arm_circumference, 2) }}
                                                 </td>
                                                 <td>{{ $weighing->nutrition_status ?? 'N/A' }}</td>
+                                                <td>{{ $weighing->status_vaksin ?? 'N/A' }}</td>
                                                 <td>
                                                     <div class="text-wrap-overflow">
                                                         {{ is_null($weighing->notes) || empty($weighing->notes) ? '-' : strip_tags($weighing->notes) }}
@@ -167,9 +162,13 @@
                                                 <td>
                                                     {{ $officer->position ?? 'N/A' }}
                                                 </td>
-                                                @if ($userCheckForThisPage)
-                                                    <td>
-                                                        <div class="d-flex justify-content-center" style="gap: .5rem">
+                                                <td>
+                                                    <div class="d-flex justify-content-center" style="gap: .5rem">
+                                                        <a href="{{ url('/weighing-data/' . $weighing->id) }}"
+                                                            class="btn btn-info" data-toggle="tooltip" title="Lihat">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                        @if ($userCheckForThisPage)
                                                             <a href="{{ url("/weighing-data/{$weighing->id}/edit") }}"
                                                                 class="btn btn-primary" data-toggle="tooltip"
                                                                 title="Ubah">
@@ -185,9 +184,9 @@
                                                                     <i class="fas fa-trash"></i>
                                                                 </button>
                                                             </form>
-                                                        </div>
-                                                    </td>
-                                                @endif
+                                                        @endif
+                                                    </div>
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>

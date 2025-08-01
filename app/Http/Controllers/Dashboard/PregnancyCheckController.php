@@ -138,14 +138,14 @@ class PregnancyCheckController extends Controller
             'gestational_age' => 'required|integer',
             'mother_weight' => 'required|numeric',
             'mother_height' => 'required|numeric',
-            'blood_pressure' => 'required|string|regex:/^\d{2,3}\/\d{2,3}$/',
-            'pulse_rate' => 'required|integer',
+            'blood_pressure' => 'nullable|string|regex:/^\d{2,3}\/\d{2,3}$/',
+            'pulse_rate' => 'nullable|integer', // Denyut nadi
             'blood_sugar' => 'nullable|numeric',
             'cholesterol' => 'nullable|numeric',
             'fundus_height' => 'nullable|numeric',
             'fetal_heart_rate' => 'nullable|integer',
-            'fetal_presentation' => 'required|in:Kepala,Bokong,Lainnya',
-            'edema' => 'required|in:Tidak,Ringan,Sedang,Berat',
+            'fetal_presentation' => 'nullable|in:Kepala,Bokong,Lainnya', // Presentasi Janin
+            'edema' => 'nullable|in:Tidak,Ringan,Sedang,Berat',
             'status_vaksin' => 'required|in:Sudah,Sekarang,Tidak',
             'jenis_vaksin' => 'nullable|in:Wajib,Tambahan,Khusus',
             'vaccine_id' => 'nullable|exists:vaccines,id',
@@ -268,29 +268,30 @@ class PregnancyCheckController extends Controller
         $pregnancy = PregnancyCheck::findOrFail($id);
 
         $rules = [
-            'parent_id' => 'required',
+            'parent_id' => 'required|exists:family_parents,id',
             'check_date' => 'required|date',
             'age_in_checks' => 'required',
             'gestational_age' => 'required|integer',
             'mother_weight' => 'required|numeric',
             'mother_height' => 'required|numeric',
-            'blood_pressure' => 'required|string|regex:/^\d{2,3}\/\d{2,3}$/',
-            'pulse_rate' => 'required|integer',
+            'blood_pressure' => 'nullable|string|regex:/^\d{2,3}\/\d{2,3}$/',
+            'pulse_rate' => 'nullable|integer',
             'blood_sugar' => 'nullable|numeric',
             'cholesterol' => 'nullable|numeric',
             'fundus_height' => 'nullable|numeric',
             'fetal_heart_rate' => 'nullable|integer',
-            'fetal_presentation' => 'required|in:Kepala,Bokong,Lainnya',
-            'edema' => 'required|in:Tidak,Ringan,Sedang,Berat',
-            'notes' => 'nullable|string|max:255',
-            'officer_id' => 'required',
+            'fetal_presentation' => 'nullable|in:Kepala,Bokong,Lainnya',
+            'edema' => 'nullable|in:Tidak,Ringan,Sedang,Berat',
             'status_vaksin' => 'required|in:Sudah,Sekarang,Tidak',
             'jenis_vaksin' => 'nullable|in:Wajib,Tambahan,Khusus',
             'vaccine_id' => 'nullable|exists:vaccines,id',
+            'notes' => 'nullable|string|max:255',
+            'officer_id' => 'required',
         ];
 
         $messages = [
             'parent_id.required' => 'Nama ibu wajib dipilih.',
+            'parent_id.exists' => 'Data ibu tidak valid.',
             'check_date.required' => 'Tanggal pemeriksaan wajib diisi.',
             'check_date.date' => 'Tanggal pemeriksaan harus berupa tanggal yang valid',
             'age_in_checks.required' => 'Usia saat pemeriksaan wajib diisi.',
@@ -298,25 +299,30 @@ class PregnancyCheckController extends Controller
             'gestational_age.integer' => 'Usia kehamilan harus berupa angka (minggu).',
             'mother_weight.required' => 'Berat badan wajib diisi.',
             'mother_weight.numeric' => 'Berat badan harus berupa angka valid (kg).',
-            'blood_pressure.required' => 'Tekanan darah wajib diisi.',
+            'mother_height.required' => 'Tinggi badan wajib diisi.',
+            'mother_height.numeric' => 'Tinggi badan harus berupa angka valid (cm).',
             'blood_pressure.regex' => 'Format tekanan darah tidak valid. Gunakan format seperti 120/80.',
-            'pulse_rate.required' => 'Denyut nadi wajib diisi.',
             'pulse_rate.integer' => 'Denyut nadi harus berupa angka (bpm).',
             'blood_sugar.numeric' => 'Gula darah harus berupa angka valid (mg/dL).',
             'cholesterol.numeric' => 'Kolesterol harus berupa angka valid (mg/dL).',
             'fundus_height.numeric' => 'Tinggi fundus harus berupa angka (cm).',
             'fetal_heart_rate.integer' => 'Detak jantung janin harus berupa angka (bpm).',
-            'fetal_presentation.required' => 'Presentasi janin wajib dipilih.',
-            'fetal_presentation.in' => 'Pilihan presentasi janin tidak valid. Pilih antara: Kepala, Bokong, atau Lainnya.',
-            'edema.required' => 'Tingkat edema wajib dipilih.',
-            'edema.in' => 'Pilihan edema tidak valid. Pilih antara: Tidak, Ringan, Sedang, atau Berat.',
+            'fetal_presentation.in' => 'Pilihan presentasi janin tidak valid.',
+            'edema.in' => 'Pilihan edema tidak valid.',
+            'status_vaksin.required' => 'Status vaksin wajib dipilih.',
+            'status_vaksin.in' => 'Status vaksin tidak valid.',
+            'jenis_vaksin.in' => 'Jenis vaksin tidak valid.',
+            'vaccine_id.exists' => 'Vaksin yang dipilih tidak valid.',
             'notes.max' => 'Keterangan maksimal 255 karakter.',
             'officer_id.required' => 'Petugas wajib diisi.',
         ];
 
+        // Validasi tambahan untuk vaksin
         if ($request->status_vaksin === 'Sekarang') {
             $rules['jenis_vaksin'] = 'required|in:Wajib,Tambahan,Khusus';
             $rules['vaccine_id'] = 'required|exists:vaccines,id';
+            $messages['jenis_vaksin.required'] = 'Jenis vaksin wajib dipilih jika status vaksin "Sekarang".';
+            $messages['vaccine_id.required'] = 'Nama vaksin wajib dipilih jika status vaksin "Sekarang".';
         }
 
         $data = $request->validate($rules, $messages);
@@ -329,58 +335,61 @@ class PregnancyCheckController extends Controller
 
         $data['check_date'] = Carbon::parse($data['check_date'])->format('Y-m-d');
 
+        // Calculate BMI and BMI status
+        $heightInMeters = $data['mother_height'] / 100;
+        $bmi = $data['mother_weight'] / ($heightInMeters * $heightInMeters);
+        $data['bmi'] = round($bmi, 2);
+
+        // Determine BMI status
+        if ($bmi < 18.5) {
+            $data['bmi_status'] = 'Kurang Berat Badan';
+        } elseif ($bmi >= 18.5 && $bmi < 25) {
+            $data['bmi_status'] = 'Normal';
+        } elseif ($bmi >= 25 && $bmi < 30) {
+            $data['bmi_status'] = 'Kelebihan Berat Badan';
+        } elseif ($bmi >= 30 && $bmi < 40) {
+            $data['bmi_status'] = 'Obesitas';
+        } elseif ($bmi >= 40 && $bmi < 50) {
+            $data['bmi_status'] = 'Obesitas Parah';
+        } else {
+            $data['bmi_status'] = 'Obesitas Ekstrem';
+        }
+
         try {
             // Simpan data lama untuk cek perubahan vaksin
             $oldVaccineId = $pregnancy->vaccine_id;
             $oldStatusVaksin = $pregnancy->status_vaksin;
 
-            $pregnancy->update([
-                'parent_id' => $data['parent_id'],
-                'check_date' => $data['check_date'],
-                'age_in_checks' => $data['age_in_checks'],
-                'gestational_age' => $data['gestational_age'],
-                'mother_weight' => $data['mother_weight'],
-                'mother_height' => $data['mother_height'],
-                'bmi' => $data['bmi'] ?? null,
-                'bmi_status' => $data['bmi_status'] ?? null,
-                'blood_pressure' => $data['blood_pressure'],
-                'pulse_rate' => $data['pulse_rate'],
-                'blood_sugar' => $data['blood_sugar'],
-                'cholesterol' => $data['cholesterol'],
-                'fundus_height' => $data['fundus_height'],
-                'fetal_heart_rate' => $data['fetal_heart_rate'],
-                'fetal_presentation' => $data['fetal_presentation'],
-                'edema' => $data['edema'],
-                'notes' => $data['notes'],
-                'officer_id' => $data['officer_id'],
-                'status_vaksin' => $data['status_vaksin'],
-                'jenis_vaksin' => $data['jenis_vaksin'],
-                'vaccine_id' => $data['vaccine_id'],
-            ]);
+            // Update data
+            $pregnancy->update($data);
 
-            // Jika status vaksin berubah ke "Sekarang" dan vaksin_id berubah, kurangi stok vaksin baru
+            // Handle vaccine stock changes
             if ($data['status_vaksin'] === 'Sekarang' && $data['vaccine_id'] && ($oldStatusVaksin !== 'Sekarang' || $oldVaccineId != $data['vaccine_id'])) {
                 Vaccine::where('id', $data['vaccine_id'])->decrement('stock', 1);
 
-                // Jika sebelumnya sudah pernah dikurangi stok vaksin lain, kembalikan stok vaksin lama
+                // Kembalikan stok vaksin lama jika berbeda
                 if ($oldStatusVaksin === 'Sekarang' && $oldVaccineId && $oldVaccineId != $data['vaccine_id']) {
                     Vaccine::where('id', $oldVaccineId)->increment('stock', 1);
                 }
             }
 
-            // Jika status vaksin berubah dari "Sekarang" ke selainnya, kembalikan stok vaksin lama
+            // Kembalikan stok jika status berubah dari "Sekarang" ke selainnya
             if ($oldStatusVaksin === 'Sekarang' && $data['status_vaksin'] !== 'Sekarang' && $oldVaccineId) {
                 Vaccine::where('id', $oldVaccineId)->increment('stock', 1);
             }
 
-            // Hapus chace
             $this->clearPregnancyCheckCache();
 
             return redirect(url('/pregnancy-check-data'))->with('success', 'Data berhasil diperbarui.');
         } catch (\Exception $e) {
-            Log::error('Error: ' . $e->getMessage()); // Check 'storage/logs/laravel.log'
+            Log::error('Error updating pregnancy check: ' . $e->getMessage());
+            Log::error('Request data: ' . json_encode($request->all()));
+            Log::error('Stack trace: ' . $e->getTraceAsString());
 
-            return back()->with('error', 'Data gagal diperbarui. Silakan coba kembali.');
+            // Untuk debugging, tampilkan error detail (hapus setelah selesai debug)
+            return back()
+                ->withInput()
+                ->with('error', 'Data gagal diperbarui: ' . $e->getMessage());
         }
     }
 

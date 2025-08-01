@@ -133,7 +133,7 @@
                             </div>
                         </div>
                     </div>
-{{-- 
+                    {{-- 
                     @if (Auth::user()?->officers?->position !== 'Bidan')
                         <div class="col-lg-4 col-md-6 col-sm-6 col-12">
                             <div class="card card-statistic-1">
@@ -170,23 +170,23 @@
                         </div>
                     @endif --}}
 
-@if (in_array(Auth::user()?->role, ['admin', 'village_head', 'officer']))
-    <div class="col-lg-4 col-md-6 col-sm-6 col-12">
-        <div class="card card-statistic-1">
-            <div class="card-icon bg-info">
-                <i class="fas fa-users"></i> {{-- Ikon diganti lebih umum untuk petugas kesehatan --}}
-            </div>
-            <div class="card-wrap">
-                <div class="card-header">
-                    <h4>Total Petugas Kesehatan</h4> {{-- Judul gabungan --}}
-                </div>
-                <div class="card-body">
-                    {{ $midwifeCount + $officerCount }} {{-- Menjumlahkan Bidan dan Petugas --}}
-                </div>
-            </div>
-        </div>
-    </div>
-@endif
+                    @if (in_array(Auth::user()?->role, ['admin', 'village_head', 'officer', 'midwife']))
+                        <div class="col-lg-4 col-md-6 col-sm-6 col-12">
+                            <div class="card card-statistic-1">
+                                <div class="card-icon bg-info">
+                                    <i class="fas fa-users"></i> {{-- Ikon diganti lebih umum untuk petugas kesehatan --}}
+                                </div>
+                                <div class="card-wrap">
+                                    <div class="card-header">
+                                        <h4>Total Petugas Kesehatan</h4> {{-- Judul gabungan --}}
+                                    </div>
+                                    <div class="card-body">
+                                        {{ $midwifeCount + $officerCount }} {{-- Menjumlahkan Bidan dan Petugas --}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                 </div>
             @endif
@@ -198,17 +198,20 @@
                             <h4>Jadwal Posyandu</h4>
 
                             {{-- -	Ganti filter nya jadi jadwal per bulan. Jadi bisa lihat jadwal bulan sebelumnya/yang akan datang.  --}}
-<div class="card-header-action dropdown">
-    <a href="#" id="dropdownMenuBtn" data-toggle="dropdown"
-        class="btn btn-primary dropdown-toggle rounded-2">Bulan ini</a>
-    <ul class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
-        <li><a href="#" class="dropdown-item active schedule-filter" data-month="current">Bulan ini</a></li>
-        <li><a href="#" class="dropdown-item schedule-filter" data-month="previous">Bulan lalu</a></li>
-        <li><a href="#" class="dropdown-item schedule-filter" data-month="next">Bulan depan</a></li>
-    </ul>
-</div>
+                            <div class="card-header-action dropdown">
+                                <a href="#" id="dropdownMenuBtn" data-toggle="dropdown"
+                                    class="btn btn-primary dropdown-toggle rounded-2">Bulan ini</a>
+                                <ul class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
+                                    <li><a href="#" class="dropdown-item active schedule-filter"
+                                            data-month="current">Bulan ini</a></li>
+                                    <li><a href="#" class="dropdown-item schedule-filter" data-month="previous">Bulan
+                                            lalu</a></li>
+                                    <li><a href="#" class="dropdown-item schedule-filter" data-month="next">Bulan
+                                            depan</a></li>
+                                </ul>
+                            </div>
 
-                            
+
                         </div>
 
                         <div class="card-body" id="top-5-scroll">
@@ -567,43 +570,43 @@
 
     <!-- Schedule filter -->
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.schedule-filter').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.schedule-filter').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
 
-            const month = this.dataset.month;
-            const url = `{{ url('/schedule/ajax/month') }}/${month}`;
+                    const month = this.dataset.month;
+                    const url = `{{ url('/schedule/ajax/month') }}/${month}`;
 
-            // Set active class
-            document.querySelectorAll('.schedule-filter').forEach(el => el.classList.remove('active'));
-            this.classList.add('active');
+                    // Set active class
+                    document.querySelectorAll('.schedule-filter').forEach(el => el.classList.remove(
+                        'active'));
+                    this.classList.add('active');
 
-            // Ubah label tombol dropdown
-            document.getElementById('dropdownMenuBtn').innerText = this.innerText;
+                    // Ubah label tombol dropdown
+                    document.getElementById('dropdownMenuBtn').innerText = this.innerText;
 
-            // Tampilkan teks "Memuat..." sebelum fetch
-            const container = document.getElementById('schedule-container');
-            container.innerHTML = `<div class="text-center py-4">Memuat...</div>`;
+                    // Tampilkan teks "Memuat..." sebelum fetch
+                    const container = document.getElementById('schedule-container');
+                    container.innerHTML = `<div class="text-center py-4">Memuat...</div>`;
 
-            // Load data via AJAX
-            fetch(url)
-                .then(res => res.json())
-                .then(data => {
-                    container.innerHTML = data.html;
-                })
-                .catch(err => {
-                    console.error(err);
-                    container.innerHTML = `
+                    // Load data via AJAX
+                    fetch(url)
+                        .then(res => res.json())
+                        .then(data => {
+                            container.innerHTML = data.html;
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            container.innerHTML = `
                         <div class="text-danger text-center py-3">
                             Gagal memuat jadwal.
                         </div>
                     `;
+                        });
                 });
+            });
         });
-    });
-});
-
     </script>
 
     @if (Auth::user()?->role === 'family_parent')

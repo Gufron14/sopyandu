@@ -19,6 +19,31 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
+
+                                {{-- Pesan error dari session --}}
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    {{-- Pesan error validasi --}}
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
                             <form action="{{ url('/officer-data') }}" method="POST">
                                 @csrf
                                 <div class="row g-4">
@@ -83,7 +108,7 @@
                                         @enderror
                                     </div>
 
-                                    <div class="form-group col-md-6">
+                                    {{-- <div class="form-group col-md-6">
                                         <label for="last_education">Pendidikan Terakhir <span
                                                 class="text-danger">*</span></label>
                                         <input id="last_education" type="text"
@@ -95,7 +120,7 @@
                                                 {{ $message }}
                                             </div>
                                         @enderror
-                                    </div>
+                                    </div> --}}
 
                                     <div class="form-group col-md-6">
                                         <label for="position">Jabatan <span class="text-danger">*</span></label>
@@ -109,15 +134,15 @@
                                             <option value="Bidan" {{ old('position') == 'Bidan' ? 'selected' : '' }}>
                                                 Bidan
                                             </option>
-                                            <option value="Tenaga Medis Puskesmas"
-                                                {{ old('position') == 'Tenaga Medis Puskesmas' ? 'selected' : '' }}>
+                                            <option value="Tenaga Medis Puskesmas/Desa"
+                                                {{ old('position') == 'Tenaga Medis Puskesmas/Desa' ? 'selected' : '' }}>
                                                 Tenaga Medis Puskesmas/Desa
                                             </option>
                                             {{-- <option value="Kepala Lingkungan"
                                                 {{ old('position') == 'Kepala Lingkungan' ? 'selected' : '' }}>
                                                 Kepala Lingkungan
                                             </option> --}}
-                                            <option value="Kader" {{ old('position') == 'Kader' ? 'selected' : '' }}>
+                                            <option value="Admin" {{ old('position') == 'Kader' ? 'selected' : '' }}>
                                                 Kader
                                             </option>
                                         </select>
@@ -200,6 +225,29 @@
         </section>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
+                confirmButtonText: 'Tutup'
+            });
+        @endif
+
+        @if ($errors->any())
+            Swal.fire({
+                icon: 'error',
+                title: 'Validasi Gagal',
+                html: `{!! implode('<br>', $errors->all()) !!}`,
+                confirmButtonText: 'Tutup'
+            });
+        @endif
+    </script>
+@endpush
 
 {{-- @push('scripts')
     <script>

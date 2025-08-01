@@ -78,6 +78,21 @@
                                                     @enderror
                                                 </div>
 
+                                                                                                    <div class="form-group">
+                                                        <label for="nik">Nomor Induk Keluarga (NIK) Ibu <span
+                                                                class="text-danger">*</span></label>
+                                                        <input id="nik" type="number"
+                                                            class="form-control @error('nik') is-invalid @enderror"
+                                                            name="nik" value="{{ old('nik', $parent->nik) }}"
+                                                            placeholder="5271xxxxxxxxxxxx">
+                                                        @error('nik')
+                                                            <div class="invalid-feedback">
+                                                                {{ $message }}
+                                                            </div>
+                                                        @enderror
+                                                        <div class="invalid-feedback" id="nik-error"></div>
+                                                    </div>
+
                                                 <div class="form-group">
                                                     <label for="mother_birth_place">Tempat Lahir Ibu <span
                                                             class="text-danger">*</span></label>

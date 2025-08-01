@@ -57,6 +57,7 @@ class VaccineController extends Controller
 
         $rules = [
             'vaccine_name' => 'required',
+            'vaccine_type' => 'required',
             'unit' => 'required',
             'stock' => 'required|numeric',
             'entry_date' => 'required|date',
@@ -66,6 +67,7 @@ class VaccineController extends Controller
 
         $messages = [
             'vaccine_name.required' => 'Nama vaksin wajib diisi.',
+            'vaccine_type.required' => 'Kategori vaksinasi wajib diisi.',
             'unit.required' => 'Unit vaksin wajib diisi.',
             'stock.required' => 'Stok vaksin wajib diisi.',
             'stock.numeric' => 'Stok vaksin harus berupa angka.',
@@ -85,6 +87,7 @@ class VaccineController extends Controller
         try {
             Vaccine::create([
                 'vaccine_name' => $data['vaccine_name'],
+                'vaccine_type' => $data['vaccine_type'],
                 'unit' => $data['unit'],
                 'stock' => $data['stock'],
                 'entry_date' => $data['entry_date'],

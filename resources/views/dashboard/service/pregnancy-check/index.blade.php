@@ -61,6 +61,7 @@
 
                                     @if (Auth::user() &&
                                             (Auth::user()->role !== 'family_parent' &&
+                                                Auth::user()->role !== 'midwife' &&
                                                 (Auth::user()->officer_id !== null &&
                                                     Auth::user()->officers->position !== 'Lurah' &&
                                                     Auth::user()->officers->position !== 'Kepala Lingkungan')))
@@ -187,20 +188,31 @@
                                                 <td>
                                                     {{ $officer->position ?? 'N/A' }}
                                                 </td>
-@if ($userCheckForThisPage)
-    <td>
-        <div class="d-flex justify-content-center" style="gap: .5rem">
-            <a href="{{ url("/pregnancy-check-data/{$pregnancy->id}/show") }}"
-                class="btn btn-info" data-toggle="tooltip" title="Detail">
-                <i class="fas fa-info-circle"></i>
-            </a>
-            <a href="{{ url("/pregnancy-check-data/{$pregnancy->id}/edit") }}"
-                class="btn btn-warning" data-toggle="tooltip" title="Edit">
-                <i class="fas fa-edit"></i>
-            </a>
-        </div>
-    </td>
-@endif
+                                                @if ($userCheckForThisPage)
+                                                    <td>
+                                                        <div class="d-flex justify-content-center" style="gap: .5rem">
+                                                            <a href="{{ url("/pregnancy-check-data/{$pregnancy->id}/show") }}"
+                                                                class="btn btn-info" data-toggle="tooltip" title="Detail">
+                                                                <i class="fas fa-info-circle"></i>
+                                                            </a>
+                                                            <a href="{{ url("/pregnancy-check-data/{$pregnancy->id}/edit") }}"
+                                                                class="btn btn-warning" data-toggle="tooltip"
+                                                                title="Edit">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <form
+                                                                action="{{ route('pregnancy-check-data.destroy', $pregnancy->id) }}"
+                                                                method="POST"
+                                                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="btn btn-danger"
+                                                                    data-toggle="tooltip" title="Hapus">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                        </div>
+                                                    </td>
+                                                @endif
                                             </tr>
                                         @endforeach
                                     </tbody>

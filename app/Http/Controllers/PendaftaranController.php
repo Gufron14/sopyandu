@@ -49,7 +49,7 @@ class PendaftaranController extends Controller
 
         // Sorting
         $sortBy = $request->get('sort_by', 'tanggal_pendaftaran');
-        $sortOrder = $request->get('sort_order', 'desc');
+        $sortOrder = $request->get('sort_order', 'asc');
         
         if ($sortBy === 'nama') {
             // Sorting berdasarkan nama lebih kompleks karena bisa dari 2 tabel berbeda
@@ -58,7 +58,7 @@ class PendaftaranController extends Controller
                   ->select('pendaftarans.*')
                   ->orderByRaw("COALESCE(family_children.fullname, family_parents.mother_fullname) {$sortOrder}");
         } else {
-            $query->orderBy($sortBy, $sortOrder);
+            $query->orderBy('tanggal_pendaftaran', 'asc');
         }
 
         $pendaftarans = $query->paginate(10)->withQueryString();

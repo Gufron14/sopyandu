@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\PendaftaranController;
@@ -16,8 +17,8 @@ use App\Http\Controllers\Dashboard\ElderlyCheckController;
 use App\Http\Controllers\Dashboard\FamilyParentController;
 use App\Http\Controllers\Dashboard\ImmunizationController;
 use App\Http\Controllers\Dashboard\SiteIdentityController;
-use App\Http\Controllers\Dashboard\EventScheduleController;
 // use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\Dashboard\EventScheduleController;
 use App\Http\Controllers\Dashboard\FamilyChildrenController;
 use App\Http\Controllers\Dashboard\PregnancyCheckController;
 
@@ -50,25 +51,18 @@ Route::get('/api/anthropometric-standards', [App\Http\Controllers\Api\Anthropome
 // Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 Route::get('/clear-dashboard-cache', [DashboardController::class, 'clearAllDashboardCache'])->name('clear-dashboard-cache')->middleware('auth');
+Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan')->middleware('auth');
 
 // Pastikan ada route seperti ini:
 // Route::get('/children-nutrition-status/ajax/{year}', [DashboardController::class, 'childrenNutritionStatusAjax']);
 
-// Articles Management
-Route::prefix('dashboard')->middleware(['auth'])->group(function () {
-    Route::get('/article', [ArticleController::class, 'index'])->name('article.index');
-    Route::get('/article/create', [ArticleController::class, 'create'])->name('article.create');
-    Route::post('/article', [ArticleController::class, 'store'])->name('article.store');
-    Route::get('/article/{article}/edit', [ArticleController::class, 'edit'])->name('article.edit');
-    Route::put('/article/{article}', [ArticleController::class, 'update'])->name('article.update');
-    Route::delete('/article/{article}', [ArticleController::class, 'destroy'])->name('article.destroy');
-});
+// KADER
 
 // Master Data
 // Officer Data - Admin
 Route::get('/admin/officer-data', [OfficerController::class, 'adminData'])
     ->name('admin.officer-data')
-    ->middleware('role:admin,village_head');
+    ->middleware('role:admin,village_head,midwife');
 
 // Officer Data - Bidan
 Route::get('/midwife/officer-data', [OfficerController::class, 'midwifeData'])
@@ -78,10 +72,10 @@ Route::get('/midwife/officer-data', [OfficerController::class, 'midwifeData'])
 // Officer Data - Tenaga Medis Puskesmas dan Kader
 Route::get('/officer/officer-data', [OfficerController::class, 'officerData'])
     ->name('officer.officer-data')
-    ->middleware('role:admin,village_head,officer');
+    ->middleware('role:admin,village_head,officer,midwife');
 
 // Resource Officer Data
-Route::resource('/officer-data', OfficerController::class)->middleware('role:admin');
+Route::resource('/officer-data', OfficerController::class)->middleware('role:admin,midwife');
 
 // Detail Officer Data
 Route::get('/officer-data/{id}/show', [OfficerController::class, 'show'])
@@ -99,7 +93,7 @@ Route::get('/officer-profile', [OfficerController::class, 'editProfile'])
     ->middleware('role:admin,village_head,midwife,officer');
 
 // Update Profile Officer
-Route::put('/officer-profile', [OfficerController::class, 'updateProfile'])
+Route::put('/officer-profile/{id}', [OfficerController::class, 'updateProfile'])
     ->name('officer-profile.updateProfile')
     ->middleware('role:admin,village_head,midwife,officer');
 
@@ -187,6 +181,21 @@ Route::get('/immunization-data/{id}/show', [ImmunizationController::class, 'show
     ->name('immunization-data.show')
     ->middleware('auth');
 
+// Edit Immunization Data
+Route::get('/immunization-data/{id}/edit', [ImmunizationController::class, 'edit'])
+    ->name('immunization-data.edit')
+    ->middleware('auth');
+
+// Update Immunization Data
+Route::put('/immunization-data/{id}', [ImmunizationController::class, 'update'])
+    ->name('immunization-data.update')
+    ->middleware('auth');
+
+// Delete Immunization Data
+Route::delete('/immunization-data/{id}', [ImmunizationController::class, 'destroy'])
+    ->name('immunization-data.destroy')
+    ->middleware('auth');
+
 // Print Immunization Data
 Route::get('/print-report/immunization-data', [ImmunizationController::class, 'printReport'])
     ->name('immunization-data.print')
@@ -214,13 +223,58 @@ Route::delete('/immunization-data/{id}/medicine', [ImmunizationController::class
     ->middleware('role:admin,village_head,midwife,officer');
 
 // Weighing
-// Resource Weighing Data
-Route::resource('/weighing-data', WeighingController::class)->middleware('auth');
+// Weighing Routes - Individual routes (ganti yang lama)
+Route::middleware('auth')->group(function () {
+    // Index - List all weighing data
+    Route::get('/weighing-data', [WeighingController::class, 'index'])
+        ->name('weighing-data.index');
+    
+    // Create - Show form to create new weighing data
+    Route::get('/weighing-data/create', [WeighingController::class, 'create'])
+        ->name('weighing-data.create');
+    
+    // Store - Save new weighing data
+    Route::post('/weighing-data', [WeighingController::class, 'store'])
+        ->name('weighing-data.store');
+    
+    // Show - Display specific weighing data
+    Route::get('/weighing-data/{id}', [WeighingController::class, 'show'])
+        ->name('weighing-data.show')
+        ->where('id', '[0-9]+');
+    
+    // Edit - Show form to edit weighing data
+    Route::get('/weighing-data/{id}/edit', [WeighingController::class, 'edit'])
+        ->name('weighing-data.edit')
+        ->where('id', '[0-9]+');
+    
+    // Update - Save updated weighing data
+    Route::put('/weighing-data/{id}', [WeighingController::class, 'update'])
+        ->name('weighing-data.update')
+        ->where('id', '[0-9]+');
+    
+    // Destroy - Delete weighing data
+    Route::delete('/weighing-data/{id}', [WeighingController::class, 'destroy'])
+        ->name('weighing-data.destroy')
+        ->where('id', '[0-9]+');
+});
 
-// Print Weighing Data
+// Print report route
 Route::get('/print-report/weighing-data', [WeighingController::class, 'printReport'])
     ->name('weighing-data.print')
     ->middleware('role:admin,village_head,midwife,officer');
+
+// AJAX routes
+Route::get('/weighing-data/ajax/{year}', [WeighingController::class, 'getWeighingStatistics'])
+    ->name('weighing-data.ajax')
+    ->middleware('auth');
+
+Route::get('/nutrition-status/ajax/{year}', [WeighingController::class, 'getNutritionStatusStatistics'])
+    ->name('nutrition-status.ajax')
+    ->middleware('auth');
+
+Route::get('/children-nutrition-status/ajax/{year?}', [WeighingController::class, 'getNutritionStatusParentChildrenStatistics'])
+    ->name('children-nutrition-status.ajax')
+    ->middleware('role:family_parent');
 
 // Pregnancy Check
 // Resource Pregnancy Check Data
@@ -230,6 +284,11 @@ Route::resource('/pregnancy-check-data', PregnancyCheckController::class)->middl
 Route::get('/pregnancy-check-data/{id}/show', [PregnancyCheckController::class, 'show'])
     ->name('pregnancy-check-data.show')
     ->middleware('auth');
+
+// Hapus Pregnancy Check Data
+Route::delete('/pregnancy-check-data/{id}', [PregnancyCheckController::class, 'destroy'])
+    ->name('pregnancy-check-data.destroy')
+    ->middleware('role:admin,village_head,midwife,officer');
 
     // Jika menggunakan web.php
 Route::get('/api/vaccines/type/{type}', [PregnancyCheckController::class, 'getVaccinesByType']);
@@ -321,6 +380,9 @@ Route::get('/schedule/ajax/{day}', [EventScheduleController::class, 'getSchedule
 Route::get('/immunization-data/ajax/{year}', [ImmunizationController::class, 'getImmunizationStatistics'])
     ->middleware('auth');
 
+Route::get('/api/vaccines/type/{type}', [ImmunizationController::class, 'getVaccinesByType'])
+    ->middleware('auth');
+
 Route::get('/weighing-data/ajax/{year}', [WeighingController::class, 'getWeighingStatistics'])
     ->middleware('auth');
 
@@ -341,7 +403,7 @@ Route::get('/get-unverified-parents', [FamilyParentController::class, 'getUnveri
 
 // Articles
 Route::resource('dashboard/articles', ArticleController::class)
-    ->middleware(['auth', 'role:admin,officer,village_head'])
+    ->middleware(['auth', 'role:admin,officer,midwife'])
     ->names([
         'index' => 'articles.index',
         'create' => 'articles.create',
@@ -377,3 +439,17 @@ Route::get('api/children-by-parent/{parentId}', [PendaftaranController::class, '
 Route::get('/cetak', [App\Http\Controllers\Dashboard\FamilyChildrenController::class, 'printData'])->name('children.print');
 
 Route::get('/print', [FamilyParentController::class, 'printReport'])->name('parent-data.print');
+
+// Articles Management
+Route::prefix('dashboard')->middleware(['auth'])->group(function () {
+    Route::get('/article', [ArticleController::class, 'index'])->name('article.index');
+    Route::get('/article/create', [ArticleController::class, 'create'])->name('article.create');
+    Route::post('/article', [ArticleController::class, 'store'])->name('article.store');
+    Route::get('/article/{article}/edit', [ArticleController::class, 'edit'])->name('article.edit');
+    Route::put('/article/{article}', [ArticleController::class, 'update'])->name('article.update');
+    Route::delete('/article/{article}', [ArticleController::class, 'destroy'])->name('article.destroy');
+});
+
+Route::get('/laporan/cetak/penimbangan', [LaporanController::class, 'cetakPenimbangan'])->name('laporan.cetak.penimbangan');
+Route::get('/laporan/cetak/kehamilan', [LaporanController::class, 'cetakKehamilan'])->name('laporan.cetak.kehamilan');
+Route::get('/laporan/cetak/imunisasi', [LaporanController::class, 'cetakImunisasi'])->name('laporan.cetak.imunisasi');

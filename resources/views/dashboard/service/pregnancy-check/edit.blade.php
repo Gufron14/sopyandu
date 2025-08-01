@@ -21,6 +21,38 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
+
+                            @if (session('success'))
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    {{ session('success') }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            @endif
+
+                            @if (session('error'))
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    {{ session('error') }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            @endif
+
+                            @if ($errors->any())
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <ul class="mb-0">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            @endif
+
                             <form action="{{ url("/pregnancy-check-data/{$pregnancy->id}") }}" method="POST">
                                 @csrf
                                 @method('PUT')
@@ -30,41 +62,48 @@
                                         <h5 class="card-title">Biodata</h5>
                                     </div>
 
+                                    @php
+                                        $isBidan = auth()->user()->role === 'midwife';
+                                    @endphp
+
                                     <div class="form-group col-md-4">
-                                        <label for="parent_id">Nama Ibu <span class="text-danger">*</span></label>
-                                        <select name="parent_id" id="parent_id"
-                                            class="form-control select2 @error('parent_id') is-invalid @enderror">
-                                            <option value="" selected disabled>-- Pilih Nama Ibu --
-                                            </option>
-                                            @foreach ($parents as $parent)
-                                                <option value="{{ $parent->id }}" data-gender="{{ $parent->gender }}"
-                                                    data-mother_birth_place="{{ $parent->mother_birth_place }}"
-                                                    data-mother_date_of_birth="{{ $parent->mother_date_of_birth }}"
-                                                    {{ old('parent_id', $pregnancy->parent_id) == $parent->id ? 'selected' : '' }}>
-                                                    {{ $parent->mother_fullname . ' - ' . $parent->nik }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                        <label for="parent_name_display">Nama Ibu <span class="text-danger">*</span></label>
+
+                                        <!-- Display field -->
+                                        <input type="text" class="form-control" id="parent_name_display"
+                                            value="{{ optional($parents->firstWhere('id', old('parent_id', $pregnancy->parent_id)))->mother_fullname }}"
+                                            readonly>
+
+                                        <!-- Hidden field untuk parent_id yang sebenarnya -->
+                                        <input type="hidden" name="parent_id"
+                                            value="{{ old('parent_id', $pregnancy->parent_id) }}">
+
                                         @error('parent_id')
-                                            <div class="invalid-feedback">
+                                            <div class="invalid-feedback d-block">
                                                 {{ $message }}
                                             </div>
                                         @enderror
                                     </div>
 
-                                    <div class="form-group col-md-4">
-                                        <label for="mother_birth_place">Tempat Lahir <span
-                                                class="text-danger">*</span></label>
-                                        <input id="mother_birth_place" type="text" class="form-control"
-                                            name="mother_birth_place" value="" placeholder="Jakarta" disabled>
-                                    </div>
+<div class="form-group col-md-4">
+    <label for="mother_birth_place">Tempat Lahir <span class="text-danger">*</span></label>
+    <input id="mother_birth_place" 
+           type="text" 
+           class="form-control"
+           name="mother_birth_place" 
+           value="{{ old('mother_birth_place', optional($parents->firstWhere('id', old('parent_id', $pregnancy->parent_id)))->mother_birth_place) }}" 
+           readonly>
+</div>
 
-                                    <div class="form-group col-md-4">
-                                        <label for="mother_date_of_birth">Tanggal Lahir <span
-                                                class="text-danger">*</span></label>
-                                        <input id="mother_date_of_birth" type="date" class="form-control dob-input"
-                                            name="mother_date_of_birth" value="" disabled>
-                                    </div>
+<div class="form-group col-md-4">
+    <label for="mother_date_of_birth">Tanggal Lahir <span class="text-danger">*</span></label>
+    <input id="mother_date_of_birth" 
+           type="date" 
+           class="form-control dob-input"
+           name="mother_date_of_birth" 
+           value="{{ old('mother_date_of_birth', optional($parents->firstWhere('id', old('parent_id', $pregnancy->parent_id)))->mother_date_of_birth) }}" 
+           readonly>
+</div>
 
                                     <div class="col-12">
                                         <hr>
@@ -76,7 +115,8 @@
                                                 class="text-danger">*</span></label>
                                         <input id="check_date" type="date"
                                             class="form-control @error('check_date') is-invalid @enderror today-input"
-                                            name="check_date" value="{{ old('check_date', $pregnancy->check_date) }}">
+                                            name="check_date" value="{{ old('check_date', $pregnancy->check_date) }}"
+                                            @if ($isBidan) readonly @endif>
                                         @error('check_date')
                                             <div class="invalid-feedback">
                                                 {{ $message }}
@@ -106,7 +146,7 @@
                                             class="form-control @error('gestational_age') is-invalid @enderror"
                                             name="gestational_age"
                                             value="{{ old('gestational_age', $pregnancy->gestational_age) }}"
-                                            placeholder="Contoh: 24">
+                                            placeholder="Contoh: 24" @if ($isBidan) readonly @endif>
                                         @error('gestational_age')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -119,7 +159,7 @@
                                             class="form-control @error('mother_weight') is-invalid @enderror"
                                             name="mother_weight"
                                             value="{{ old('mother_weight', $pregnancy->mother_weight) }}"
-                                            placeholder="Contoh: 55.5">
+                                            placeholder="Contoh: 55.5" @if ($isBidan) readonly @endif>
                                         @error('mother_weight')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -130,7 +170,9 @@
                                                 class="text-danger">*</span></label>
                                         <input id="mother_height" type="text"
                                             class="form-control @error('mother_height') is-invalid @enderror"
-                                            name="mother_height" value="{{ old('mother_height', $pregnancy->mother_height) }}">
+                                            name="mother_height"
+                                            value="{{ old('mother_height', $pregnancy->mother_height) }}"
+                                            @if ($isBidan) readonly @endif>
                                         @error('mother_height')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -140,14 +182,17 @@
                                         <label for="imt_status" class="form-label">Index Masa Tubuh</label>
                                         <div class="input-group">
                                             <span class="input-group-text">Status</span>
-                                            <input type="text" name="bmi_status" id="imt_status" value="{{ old('bmi_status', $pregnancy->bmi_status) }}"
+                                            <input type="text" name="bmi_status" id="imt_status"
+                                                value="{{ old('bmi_status', $pregnancy->bmi_status) }}"
                                                 class="form-control" readonly>
                                             {{-- <input type="hidden" name="bmi" id="bmi_value"> --}}
                                             <span class="input-group-text">IMT</span>
-                                            <input type="text" class="form-control" readonly id="bmi_value" name="bmi_value"
-                                                value="{{ old('bmi_value', $pregnancy->bmi_value) }}">
+                                            <input type="text" class="form-control" readonly id="bmi_value"
+                                                name="bmi_value" value="{{ old('bmi_value', $pregnancy->bmi_value) }}">
                                         </div>
                                     </div>
+
+                                    <h5>Khusus Bidan</h5>
 
                                     <div class="form-group col-md-6">
                                         <label for="blood_pressure">Tekanan Darah <span
@@ -156,7 +201,7 @@
                                             class="form-control @error('blood_pressure') is-invalid @enderror"
                                             name="blood_pressure"
                                             value="{{ old('blood_pressure', $pregnancy->blood_pressure) }}"
-                                            placeholder="Contoh: 120/80">
+                                            @if (!$isBidan) readonly disabled @endif>
                                         @error('blood_pressure')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -168,7 +213,7 @@
                                         <input id="pulse_rate" type="text"
                                             class="form-control @error('pulse_rate') is-invalid @enderror"
                                             name="pulse_rate" value="{{ old('pulse_rate', $pregnancy->pulse_rate) }}"
-                                            placeholder="Contoh: 80">
+                                            @if (!$isBidan) readonly disabled @endif>
                                         @error('pulse_rate')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -179,7 +224,7 @@
                                         <input id="blood_sugar" type="text"
                                             class="form-control @error('blood_sugar') is-invalid @enderror"
                                             name="blood_sugar" value="{{ old('blood_sugar', $pregnancy->blood_sugar) }}"
-                                            placeholder="Contoh: 90.5">
+                                            @if (!$isBidan) readonly disabled @endif>
                                         @error('blood_sugar')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -190,7 +235,7 @@
                                         <input id="cholesterol" type="text"
                                             class="form-control @error('cholesterol') is-invalid @enderror"
                                             name="cholesterol" value="{{ old('cholesterol', $pregnancy->cholesterol) }}"
-                                            placeholder="Contoh: 200.0">
+                                            @if (!$isBidan) readonly disabled @endif>
                                         @error('cholesterol')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -202,7 +247,7 @@
                                             class="form-control @error('fundus_height') is-invalid @enderror"
                                             name="fundus_height"
                                             value="{{ old('fundus_height', $pregnancy->fundus_height) }}"
-                                            placeholder="Contoh: 30">
+                                            @if (!$isBidan) readonly disabled @endif>
                                         @error('fundus_height')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -214,7 +259,7 @@
                                             class="form-control @error('fetal_heart_rate') is-invalid @enderror"
                                             name="fetal_heart_rate"
                                             value="{{ old('fetal_heart_rate', $pregnancy->fetal_heart_rate) }}"
-                                            placeholder="Contoh: 140">
+                                            @if (!$isBidan) readonly disabled @endif>
                                         @error('fetal_heart_rate')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -224,7 +269,8 @@
                                         <label for="fetal_presentation">Presentasi Janin <span
                                                 class="text-danger">*</span></label>
                                         <select name="fetal_presentation" id="fetal_presentation"
-                                            class="form-control @error('fetal_presentation') is-invalid @enderror">
+                                            class="form-control @error('fetal_presentation') is-invalid @enderror"
+                                            @if (!$isBidan) readonly disabled @endif>
                                             <option value="" selected disabled>-- Pilih Presentasi Janin --</option>
                                             <option value="Kepala"
                                                 {{ old('fetal_presentation', $pregnancy->fetal_presentation) == 'Kepala' ? 'selected' : '' }}>
@@ -247,7 +293,8 @@
                                     <div class="form-group col-md-6">
                                         <label for="edema">Edema <span class="text-danger">*</span></label>
                                         <select name="edema" id="edema"
-                                            class="form-control @error('edema') is-invalid @enderror">
+                                            class="form-control @error('edema') is-invalid @enderror"
+                                            @if (!$isBidan) readonly disabled @endif>
                                             <option value="" selected disabled>-- Pilih Tingkat Edema --</option>
                                             <option value="Tidak"
                                                 {{ old('edema', $pregnancy->edema) == 'Tidak' ? 'selected' : '' }}>Tidak
@@ -272,6 +319,7 @@
                                             <label for="status_vaksin" class="form-label">Status Vaksin <span
                                                     class="text-danger">*</span></label>
                                             <select name="status_vaksin" id="status_vaksin"
+                                                @if (!$isBidan) readonly @endif
                                                 class="form-select @error('status_vaksin') is-invalid @enderror">
                                                 <option value="" disabled>-- Pilih Status Vaksin --</option>
                                                 <option value="Sudah"
@@ -282,7 +330,7 @@
                                                     Divaksin Sekarang</option>
                                                 <option value="Tidak"
                                                     {{ old('status_vaksin', $pregnancy->status_vaksin) == 'Tidak' ? 'selected' : '' }}>
-                                                    Tidak Divaksin</option>
+                                                    Belum Divaksin</option>
                                             </select>
                                             @error('status_vaksin')
                                                 <div class="invalid-feedback">{{ $message }}</div>

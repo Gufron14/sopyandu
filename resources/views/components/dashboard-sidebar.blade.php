@@ -2,7 +2,7 @@
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand">
             <a href="{{ url('/dashboard') }}" style="color: #6777ef;">
-                 <img src="{{ asset('img/logo.png') }}" alt="Logo" class="rounded" height="100"></a>
+                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="rounded" height="100"></a>
         </div>
         <div class="sidebar-brand sidebar-brand-sm">
             <a href="{{ url('/dashboard') }}">
@@ -17,6 +17,14 @@
                 </a>
             </li>
 
+            @if (auth()->check() && in_array(auth()->user()->role, ['admin', 'midwife']))                
+                <li class="{{ Request::is('laporan') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ url('/laporan') }}"><i class="fas fa-list"></i>
+                        <span>Laporan</span>
+                    </a>
+                </li>
+            @endif
+
             @if (auth()->check())
                 @php
                     $role = auth()->user()->role;
@@ -27,6 +35,15 @@
 
                 <li class="menu-header">Master</li>
 
+                @if ($isAdminOrOfficerOrVillageHead)
+                    <li class="{{ Request::is('officer/officer-data*') ? 'active' : '' }}">
+                        <a href="{{ route('pendaftaran.index') }}" class="nav-link">
+                            <i class="fas fa-list-alt"></i>
+                            <span>Pendaftaran</span>
+                        </a>
+                    </li>
+                @endif
+
                 @if ($role !== 'family_parent')
                     <li class="{{ Request::is('parent-data*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ url('/parent-data') }}">
@@ -35,6 +52,7 @@
                         </a>
                     </li>
                 @endif
+
 
                 <li class="{{ Request::is('children-data*') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ url('/children-data') }}">
@@ -70,25 +88,16 @@
                     </li>
                 @endif --}}
 
-                @if ($isAdminOrOfficerOrVillageHead)
+                @if ($isAdminOrMidwifeOrVillageHead)
                     <li class="{{ Request::is('officer/officer-data*') ? 'active' : '' }}">
                         <a href="{{ url('/officer/officer-data') }}" class="nav-link">
                             <i class="fas fa-user-tie"></i>
-                            <span>Data Petugas & Bidan</span>
+                            <span>Data Kader & Bidan</span>
                         </a>
                     </li>
                 @endif
 
-                @if ($isAdminOrOfficerOrVillageHead)
-                    <li class="{{ Request::is('officer/officer-data*') ? 'active' : '' }}">
-                        <a href="{{ route('pendaftaran.index') }}" class="nav-link">
-                            <i class="fas fa-list-alt"></i>
-                            <span>Pendaftaran</span>
-                        </a>
-                    </li>
-                @endif
-
-                @if (auth()->check() && in_array(auth()->user()->role, ['admin', 'officer', 'village_head']))
+                @if (auth()->check() && in_array(auth()->user()->role, ['admin', 'officer', 'village_head', 'midwife']))
                     <li class="menu-header">Konten</li>
                     <li class="{{ Request::is('dashboard/articles*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ url('/dashboard/articles') }}">

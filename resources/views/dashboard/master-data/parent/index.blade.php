@@ -25,90 +25,105 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            @if (Auth::user() && Auth::user()->role == 'admin')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div class="d-flex flex-wrap" style="gap: 1rem;">
-        <form method="GET" action="{{ route('parent-data.index') }}" style="width: 16rem">
-            <input type="hidden" name="pregnancy_status" value="{{ $selectedPregnancyStatus }}">
-            <input type="hidden" name="month" value="{{ $selectedMonth }}">
-            <input type="hidden" name="year" value="{{ $selectedYear }}">
-            <div class="input-group">
-                <label class="input-group-prepend" for="status">
-                    <span class="input-group-text bg-light">Status Akun</span>
-                </label>
-                <select class="custom-select" name="status" id="status" onchange="this.form.submit()">
-                    @foreach ($statuses as $value => $label)
-                        <option value="{{ $value }}" {{ $value == $selectedStatus ? 'selected' : '' }}>
-                            {{ $label }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-        </form>
+                            @if ((Auth::user() && Auth::user()->role == 'admin') || Auth::user()->role == 'midwife')
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <div class="d-flex flex-wrap" style="gap: 1rem;">
+                                        <form method="GET" action="{{ route('parent-data.index') }}" style="width: 16rem">
+                                            <input type="hidden" name="pregnancy_status"
+                                                value="{{ $selectedPregnancyStatus }}">
+                                            <input type="hidden" name="month" value="{{ $selectedMonth }}">
+                                            <input type="hidden" name="year" value="{{ $selectedYear }}">
+                                            <div class="input-group">
+                                                <label class="input-group-prepend" for="status">
+                                                    <span class="input-group-text bg-light">Status Akun</span>
+                                                </label>
+                                                <select class="custom-select" name="status" id="status"
+                                                    onchange="this.form.submit()">
+                                                    @foreach ($statuses as $value => $label)
+                                                        <option value="{{ $value }}"
+                                                            {{ $value == $selectedStatus ? 'selected' : '' }}>
+                                                            {{ $label }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </form>
 
-        <form method="GET" action="{{ route('parent-data.index') }}" style="width: 16rem">
-            <input type="hidden" name="status" value="{{ $selectedStatus }}">
-            <input type="hidden" name="month" value="{{ $selectedMonth }}">
-            <input type="hidden" name="year" value="{{ $selectedYear }}">
-            <div class="input-group">
-                <label class="input-group-prepend" for="pregnancy_status">
-                    <span class="input-group-text bg-light">Status Kehamilan</span>
-                </label>
-                <select class="custom-select" name="pregnancy_status" id="pregnancy_status" onchange="this.form.submit()">
-                    @foreach ($pregnancyStatuses as $value => $label)
-                        <option value="{{ $value }}" {{ $value == $selectedPregnancyStatus ? 'selected' : '' }}>
-                            {{ $label }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-        </form>
+                                        <form method="GET" action="{{ route('parent-data.index') }}" style="width: 16rem">
+                                            <input type="hidden" name="status" value="{{ $selectedStatus }}">
+                                            <input type="hidden" name="month" value="{{ $selectedMonth }}">
+                                            <input type="hidden" name="year" value="{{ $selectedYear }}">
+                                            <div class="input-group">
+                                                <label class="input-group-prepend" for="pregnancy_status">
+                                                    <span class="input-group-text bg-light">Status Kehamilan</span>
+                                                </label>
+                                                <select class="custom-select" name="pregnancy_status" id="pregnancy_status"
+                                                    onchange="this.form.submit()">
+                                                    @foreach ($pregnancyStatuses as $value => $label)
+                                                        <option value="{{ $value }}"
+                                                            {{ $value == $selectedPregnancyStatus ? 'selected' : '' }}>
+                                                            {{ $label }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </form>
 
-        <form method="GET" action="{{ route('parent-data.index') }}" style="width: 14rem">
-            <input type="hidden" name="status" value="{{ $selectedStatus }}">
-            <input type="hidden" name="pregnancy_status" value="{{ $selectedPregnancyStatus }}">
-            <input type="hidden" name="year" value="{{ $selectedYear }}">
-            <div class="input-group">
-                <label class="input-group-prepend" for="month">
-                    <span class="input-group-text bg-light">Bulan</span>
-                </label>
-                <select class="custom-select" name="month" id="month" onchange="this.form.submit()">
-                    @foreach ($months as $value => $label)
-                        <option value="{{ $value }}" {{ $value == $selectedMonth ? 'selected' : '' }}>
-                            {{ $label }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-        </form>
+                                        <form method="GET" action="{{ route('parent-data.index') }}"
+                                            style="width: 14rem">
+                                            <input type="hidden" name="status" value="{{ $selectedStatus }}">
+                                            <input type="hidden" name="pregnancy_status"
+                                                value="{{ $selectedPregnancyStatus }}">
+                                            <input type="hidden" name="year" value="{{ $selectedYear }}">
+                                            <div class="input-group">
+                                                <label class="input-group-prepend" for="month">
+                                                    <span class="input-group-text bg-light">Bulan</span>
+                                                </label>
+                                                <select class="custom-select" name="month" id="month"
+                                                    onchange="this.form.submit()">
+                                                    @foreach ($months as $value => $label)
+                                                        <option value="{{ $value }}"
+                                                            {{ $value == $selectedMonth ? 'selected' : '' }}>
+                                                            {{ $label }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </form>
 
-        <form method="GET" action="{{ route('parent-data.index') }}" style="width: 12rem">
-            <input type="hidden" name="status" value="{{ $selectedStatus }}">
-            <input type="hidden" name="pregnancy_status" value="{{ $selectedPregnancyStatus }}">
-            <input type="hidden" name="month" value="{{ $selectedMonth }}">
-            <div class="input-group">
-                <label class="input-group-prepend" for="year">
-                    <span class="input-group-text bg-light">Tahun</span>
-                </label>
-                <select class="custom-select" name="year" id="year" onchange="this.form.submit()">
-                    @foreach ($years as $value => $label)
-                        <option value="{{ $value }}" {{ $value == $selectedYear ? 'selected' : '' }}>
-                            {{ $label }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-        </form>
-    </div>
+                                        <form method="GET" action="{{ route('parent-data.index') }}"
+                                            style="width: 12rem">
+                                            <input type="hidden" name="status" value="{{ $selectedStatus }}">
+                                            <input type="hidden" name="pregnancy_status"
+                                                value="{{ $selectedPregnancyStatus }}">
+                                            <input type="hidden" name="month" value="{{ $selectedMonth }}">
+                                            <div class="input-group">
+                                                <label class="input-group-prepend" for="year">
+                                                    <span class="input-group-text bg-light">Tahun</span>
+                                                </label>
+                                                <select class="custom-select" name="year" id="year"
+                                                    onchange="this.form.submit()">
+                                                    @foreach ($years as $value => $label)
+                                                        <option value="{{ $value }}"
+                                                            {{ $value == $selectedYear ? 'selected' : '' }}>
+                                                            {{ $label }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </form>
+                                    </div>
 
-    <div class="d-flex" style="gap: 0.5rem;">
-        <a href="{{ route('parent-data.print', ['status' => $selectedStatus, 'pregnancy_status' => $selectedPregnancyStatus, 'month' => $selectedMonth, 'year' => $selectedYear]) }}" 
-           class="btn btn-success" target="_blank">
-            <i class="fas fa-print mr-1"></i> Cetak Data Laporan
-        </a>
-        <a href="{{ url('/parent-data/create') }}" class="btn btn-primary">Tambah</a>
-    </div>
-</div>
+                                    <div class="d-flex" style="gap: 0.5rem;">
+                                        <a href="{{ route('parent-data.print', ['status' => $selectedStatus, 'pregnancy_status' => $selectedPregnancyStatus, 'month' => $selectedMonth, 'year' => $selectedYear]) }}"
+                                            class="btn btn-success" target="_blank">
+                                            <i class="fas fa-print mr-1"></i> Cetak Data Laporan
+                                        </a>
+                                        @if (auth()->check() && auth()->user()->role == 'admin')
+                                            <a href="{{ url('/parent-data/create') }}" class="btn btn-primary">Tambah</a>
+                                        @endif
+                                    </div>
+                                </div>
 
 
                             @endif
@@ -137,7 +152,7 @@
                                                 <td class="text-right">{{ $loop->iteration }}</td>
                                                 <td class="text-right">{{ $parent->nik }}</td>
                                                 <td>{{ $parent->mother_fullname ?? 'N/A' }}</td>
-                                                <td>{{ $parent->father_fullname ?? 'N/A' }}</td>
+                                                <td>{{ $parent->father_fullname }}</td>
                                                 <td class="text-right">{{ $parent->number_of_children ?? 'N/A' }}</td>
                                                 <td class="text-center">
                                                     @if ($parent->is_pregnant == 'Hamil')
@@ -183,14 +198,15 @@
                                                         </a>
                                                         @if (Auth::user()->officer_id !== null)
                                                             @if (Auth::user()->officers->position !== 'Lurah' && Auth::user()->officers->position !== 'Kepala Lingkungan')
-                                                                <a href="{{ url("/parent-data/{$parent->id}/edit") }}"
-                                                                    class="btn btn-primary" data-toggle="tooltip"
-                                                                    title="Ubah">
-                                                                    <i class="fas fa-pencil"></i>
-                                                                </a>
                                                                 @if (auth()->check() && auth()->user()->role == 'admin')
+                                                                    <a href="{{ url("/parent-data/{$parent->id}/edit") }}"
+                                                                        class="btn btn-primary" data-toggle="tooltip"
+                                                                        title="Ubah">
+                                                                        <i class="fas fa-pencil"></i>
+                                                                    </a>
                                                                     <form action="{{ url("/parent-data/{$parent->id}") }}"
-                                                                        method="POST" id="delete-form-{{ $parent->id }}"
+                                                                        method="POST"
+                                                                        id="delete-form-{{ $parent->id }}"
                                                                         class="d-inline">
                                                                         @method('delete')
                                                                         @csrf
@@ -202,7 +218,8 @@
                                                                     </form>
                                                                     <form
                                                                         action="{{ url("/parent-data/{$parent->id}/reset") }}"
-                                                                        method="POST" id="reset-form-{{ $parent->id }}"
+                                                                        method="POST"
+                                                                        id="reset-form-{{ $parent->id }}"
                                                                         class="d-inline">
                                                                         @method('PUT')
                                                                         @csrf

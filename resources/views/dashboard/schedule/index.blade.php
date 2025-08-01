@@ -40,7 +40,7 @@
                                 @php
                                     $canAccessContent =
                                         Auth::user()->officer_id !== null &&
-                                        !in_array(Auth::user()->officers->position, ['Lurah', 'Kepala Lingkungan']) &&
+                                        !in_array(Auth::user()->officers->position, ['Lurah', 'Kepala Lingkungan', 'midwife']) &&
                                         Auth::user()->role !== 'family_parent';
 
                                     $offset = \Carbon\Carbon::now()->getOffset() / 3600;

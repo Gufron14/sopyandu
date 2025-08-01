@@ -19,6 +19,29 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
+                                                            {{-- Pesan error dari session --}}
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    {{-- Pesan error validasi --}}
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
                             <form action="{{ url("/officer-data/{$officer->id}") }}" method="POST">
                                 @csrf
                                 @method('PUT')
@@ -88,7 +111,7 @@
                                         @enderror
                                     </div>
 
-                                    <div class="form-group col-md-6">
+                                    {{-- <div class="form-group col-md-6">
                                         <label for="last_education">Pendidikan Terakhir <span
                                                 class="text-danger">*</span></label>
                                         <input id="last_education" type="text"
@@ -101,7 +124,7 @@
                                                 {{ $message }}
                                             </div>
                                         @enderror
-                                    </div>
+                                    </div> --}}
 
                                     @if ($officer->position === 'Lurah')
                                         <input type="hidden" name="position" value="{{ $officer->position }}">
@@ -110,7 +133,7 @@
                                             <label for="position">Jabatan <span class="text-danger">*</span></label>
                                             <select name="position" id="position"
                                                 class="form-control @error('position') is-invalid @enderror">
-                                                <option value="" selected disabled>-- Pilih Jabatan --
+                                                <option value="{{ old('position', $officer->position) }}" selected disabled>-- Pilih Jabatan --
                                                 </option>
                                                 {{-- <option value="Admin"
                                                     {{ old('position', $officer->position) == 'Admin' ? 'selected' : '' }}>

@@ -82,3 +82,9 @@
         </tbody>
     </table>
 @endsection
+
+<script>
+    window.onload = function() {
+        window.print();
+    };
+</script>

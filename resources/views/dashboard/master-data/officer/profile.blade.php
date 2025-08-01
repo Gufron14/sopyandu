@@ -15,11 +15,21 @@
                     <div class="breadcrumb-item">@yield('title')</div>
                 </div>
             </div>
+
+            @if (session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
+
             <div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <form action="{{ url('/officer-profile') }}" method="POST">
+                            <form action="{{ url('/officer-profile/' . $officer->id) }}" method="POST">
                                 @csrf
                                 @method('PUT')
                                 <div class="row g-4">
@@ -31,7 +41,7 @@
                                         <label for="fullname">Nama Lengkap <span class="text-danger">*</span></label>
                                         <input id="fullname" type="text"
                                             class="form-control @error('fullname') is-invalid @enderror" name="fullname"
-                                            value="{{ old('fullname', $officer->fullname) }}" placeholder="Ujang" pattern="^[a-zA-Z\s]+$"
+                                            value="{{ old('fullname', $officer->fullname) }}" pattern="^[a-zA-Z\s]+$"
                                             autofocus>
                                         @error('fullname')
                                             <div class="invalid-feedback">
@@ -40,68 +50,6 @@
                                         @enderror
                                     </div>
 
-                                    {{-- <div class="form-group col-md-6">
-                                        <label for="birth_place">Tempat Lahir <span class="text-danger">*</span></label>
-                                        <input id="birth_place" type="text"
-                                            class="form-control @error('birth_place') is-invalid @enderror"
-                                            name="birth_place" value="{{ old('birth_place', $officer->birth_place) }}"
-                                            placeholder="Tasikmalaya" pattern="^[a-zA-Z\s]+$">
-                                        @error('birth_place')
-                                            <div class="invalid-feedback">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-
-                                    <div class="form-group col-md-6">
-                                        <label for="date_of_birth">Tanggal Lahir <span class="text-danger">*</span></label>
-                                        <input id="date_of_birth" type="date"
-                                            class="form-control @error('date_of_birth') is-invalid @enderror"
-                                            name="date_of_birth"
-                                            value="{{ old('date_of_birth', $officer->date_of_birth) }}">
-                                        @error('date_of_birth')
-                                            <div class="invalid-feedback">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-
-                                    <div class="form-group col-md-6">
-                                        <label for="gender">Jenis Kelamin <span class="text-danger">*</span></label>
-                                        <select name="gender" id="gender"
-                                            class="form-control @error('gender') is-invalid @enderror">
-                                            <option value="" selected disabled>-- Pilih Jenis Kelamin --
-                                            </option>
-                                            <option value="L"
-                                                {{ old('gender', $officer->gender) == 'L' ? 'selected' : '' }}>Laki -
-                                                Laki
-                                            </option>
-                                            <option value="P"
-                                                {{ old('gender', $officer->gender) == 'P' ? 'selected' : '' }}>
-                                                Perempuan
-                                            </option>
-                                        </select>
-                                        @error('gender')
-                                            <div class="invalid-feedback">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div> --}}
-
-                                    <div class="form-group col-md-6">
-                                        <label for="last_education">Pendidikan Terakhir <span
-                                                class="text-danger">*</span></label>
-                                        <input id="last_education" type="text"
-                                            class="form-control @error('last_education') is-invalid @enderror"
-                                            name="last_education"
-                                            value="{{ old('last_education', $officer->last_education) }}"
-                                            placeholder="SMA, SMK, S1 Teknik Informatika">
-                                        @error('last_education')
-                                            <div class="invalid-feedback">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
 
                                     <div class="form-group col-md-6">
                                         <label for="address">Alamat <span class="text-danger">*</span></label>

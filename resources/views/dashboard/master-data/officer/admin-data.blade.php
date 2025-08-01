@@ -25,7 +25,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            @if (auth()->check() && auth()->user()->role == 'admin')
+                            @if (auth()->check() && auth()->user()->role == 'admin' || auth()->user()->role == 'midwife')
                                 <div class=" d-flex justify-content-between align-items-center mb-4">
                                     @include('components.role-list')
 
@@ -63,7 +63,13 @@
                                                 <td class="text-right">
                                                     {{ $admin->users->first()->phone_number ?? 'N/A' }}
                                                 </td>
-                                                <td>{{ $admin->position ?? 'N/A' }}</td>
+                                                <td>
+                                                    @if ($admin->role === 'admin')
+                                                        Kader
+                                                    @else
+                                                        Kader
+                                                    @endif
+                                                </td>
                                                 <td class="text-center">
                                                     @if (!empty($admin->users->first()->verified_at) || $admin->users->first()->verified_at !== null)
                                                         <span class="badge badge-success">Aktif</span>

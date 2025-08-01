@@ -25,56 +25,62 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-@if (Auth::user() &&
-        (Auth::user()->role === 'admin' ||
-        (Auth::user()->officer_id !== null &&
-            Auth::user()->officers->position !== 'Lurah' &&
-            Auth::user()->officers->position !== 'Kepala Lingkungan')))
+                            @if (Auth::user() &&
+                                (Auth::user()->role === 'admin' ||
+                                 Auth::user()->role === 'family_parent' ||
+                                 Auth::user()->role === 'midwife' ||
+                                    (Auth::user()->officer_id !== null &&
+                                    Auth::user()->officers->position !== 'Lurah' &&
+                                    Auth::user()->officers->position !== 'Kepala Lingkungan' 
+                                    )
+                                )
+                                )
                                 <div class="d-flex justify-content-between align-items-center mb-4 gap-3">
-                                    <div class="d-flex" style="gap: 1rem;">
-                                        <form method="GET" action="{{ url('/children-data') }}" style="width: 14rem">
-                                            <input type="hidden" name="year" value="{{ $selectedYear }}">
-                                            <div class="input-group input-group-sm">
-                                                <label class="input-group-text" for="month_filter">Bulan</label>
-                                                <select class="form-select" id="month_filter" name="month"
-                                                    onchange="this.form.submit()">
-                                                    @foreach ($months as $value => $label)
-                                                        <option value="{{ $value }}"
-                                                            {{ $selectedMonth == $value ? 'selected' : '' }}>
-                                                            {{ $label }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </form>
-
-                                        <form method="GET" action="{{ url('/children-data') }}" style="width: 12rem">
-                                            <input type="hidden" name="month" value="{{ $selectedMonth }}">
-                                            <div class="input-group input-group-sm">
-                                                <label class="input-group-text" for="year_filter">Tahun</label>
-                                                <select class="form-select" id="year_filter" name="year"
-                                                    onchange="this.form.submit()">
-                                                    @foreach ($years as $value => $label)
-                                                        <option value="{{ $value }}"
-                                                            {{ $selectedYear == $value ? 'selected' : '' }}>
-                                                            {{ $label }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </form>
+                                <div class="d-flex" style="gap: 1rem;">
+                                    <form method="GET" action="{{ url('/children-data') }}" style="width: 14rem">
+                                    <input type="hidden" name="year" value="{{ $selectedYear }}">
+                                    <div class="input-group input-group-sm">
+                                        <label class="input-group-text" for="month_filter">Bulan</label>
+                                        <select class="form-select" id="month_filter" name="month"
+                                        onchange="this.form.submit()">
+                                        @foreach ($months as $value => $label)
+                                            <option value="{{ $value }}"
+                                            {{ $selectedMonth == $value ? 'selected' : '' }}>
+                                            {{ $label }}
+                                            </option>
+                                        @endforeach
+                                        </select>
                                     </div>
+                                    </form>
 
-                                    <div class="d-flex gap-2">
-                                        <a href="{{ route('children.print', ['month' => $selectedMonth, 'year' => $selectedYear]) }}"
-                                            class="btn btn-success" target="_blank">
-                                            <i class="fas fa-print"></i>
-                                            Cetak Data
-                                        </a>
-                                        <a href="{{ url('/children-data/create') }}" class="btn btn-primary">Tambah</a>
+                                    <form method="GET" action="{{ url('/children-data') }}" style="width: 12rem">
+                                    <input type="hidden" name="month" value="{{ $selectedMonth }}">
+                                    <div class="input-group input-group-sm">
+                                        <label class="input-group-text" for="year_filter">Tahun</label>
+                                        <select class="form-select" id="year_filter" name="year"
+                                        onchange="this.form.submit()">
+                                        @foreach ($years as $value => $label)
+                                            <option value="{{ $value }}"
+                                            {{ $selectedYear == $value ? 'selected' : '' }}>
+                                            {{ $label }}
+                                            </option>
+                                        @endforeach
+                                        </select>
                                     </div>
+                                    </form>
                                 </div>
 
+                                <div class="d-flex gap-2">
+                                    <a href="{{ route('children.print', ['month' => $selectedMonth, 'year' => $selectedYear]) }}"
+                                    class="btn btn-success" target="_blank">
+                                    <i class="fas fa-print"></i>
+                                    Cetak Data
+                                    </a>
+                                    @if (Auth::user() && Auth::user()->role !== 'midwife')
+                                        <a href="{{ url('/children-data/create') }}" class="btn btn-primary">Tambah</a>
+                                    @endif
+                                </div>
+                                </div>
                             @endif
 
 

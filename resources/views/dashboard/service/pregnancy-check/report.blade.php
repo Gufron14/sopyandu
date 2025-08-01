@@ -22,6 +22,8 @@
                 <th>Usia Saat Pemeriksaan</th>
                 <th>Usia Kehamilan (minggu)</th>
                 <th>Berat Badan (kg)</th>
+                <th>Tinggi Badan (cm)</th>
+                <th>Status BMI</th>
                 <th>Tekanan Darah</th>
                 <th>Denyut Nadi (bpm)</th>
                 <th>Kadar Gula Darah (mg/dL)</th>
@@ -30,6 +32,7 @@
                 <th>Detak Jantung Janin (bpm)</th>
                 <th>Presentasi Janin</th>
                 <th>Edema</th>
+                <th>Status Vaksin</th>
                 <th>Keterangan</th>
                 <th>Nama Petugas</th>
                 <th>Jabatan Petugas</th>
@@ -56,6 +59,8 @@
                     </td>
                     <td class="text-right">{{ $pregnancy->age_in_checks ?? 'N/A' }}</td>
                     <td class="text-right">{{ $pregnancy->gestational_age ?? 'N/A' }}</td>
+                    <td class="text-right">{{ $pregnancy->mother_height ?? 'N/A' }}</td>
+                    <td class="text-right">{{ $pregnancy->getBMIStatus() ?? 'N/A' }}</td>
                     <td class="text-right">
                         {{ number_format($pregnancy->mother_weight, 2) ?? 'N/A' }}</td>
                     <td class="text-right">{{ $pregnancy->blood_pressure ?? 'N/A' }}</td>
@@ -74,6 +79,7 @@
                     </td>
                     <td>{{ $pregnancy->fetal_presentation ?? 'N/A' }}</td>
                     <td>{{ $pregnancy->edema ?? 'N/A' }}</td>
+                    <td>{{ $pregnancy->status_vaksin ?? 'N/A' }}</td>
                     <td>{{ is_null($pregnancy->notes) || empty($pregnancy->notes) ? '-' : strip_tags($pregnancy->notes) }}
                     </td>
                     <td>
@@ -91,3 +97,9 @@
         </tbody>
     </table>
 @endsection
+
+<script>
+    window.onload = function() {
+        window.print();
+    };
+</script>

@@ -21,7 +21,38 @@
                         <div class="card-body">
                             <form action="{{ url('/vaccine-data') }}" method="POST">
                                 @csrf
+
                                 <div class="row g-4">
+                                    <div class="form-group col-md-6 vaccine-section">
+                                        <label for="vaccine_type">Kategori Vaksinasi <span
+                                                class="text-danger">*</span></label>
+                                        <select name="vaccine_type" id="vaccine_type"
+                                            class="form-control @error('vaccine_type') is-invalid @enderror">
+                                            <option value="" selected disabled>-- Pilih Kategori Vaksinasi --
+                                            </option>
+                                            <option value="Wajib"
+                                                {{ old('vaccine_type') == 'Wajib' ? 'selected' : '' }}>
+                                                Wajib
+                                            </option>
+                                            <option value="Tambahan"
+                                                {{ old('vaccine_type') == 'Tambahan' ? 'selected' : '' }}>
+                                                Tambahan
+                                            </option>
+                                            <option value="Khusus"
+                                                {{ old('vaccine_type') == 'Khusus' ? 'selected' : '' }}>
+                                                Khusus
+                                            </option>
+                                            <option value="Lainnya"
+                                                {{ old('vaccine_type') == 'Lainnya' ? 'selected' : '' }}>
+                                                Lainnya
+                                            </option>
+                                        </select>
+                                        @error('vaccine_type')
+                                            <div class="invalid-feedback">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
                                     <div class="form-group col-md-6">
                                         <label for="vaccine_name">Nama Vaksin <span class="text-danger">*</span></label>
                                         <input id="vaccine_name" type="text"

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('officers', function (Blueprint $table) {
             $table->id();
-            $table->string('nik')->unique();
+            $table->string('nik')->unique()->nullable();
             $table->string('fullname')->nullable();
             $table->string('birth_place')->nullable();
             $table->date('date_of_birth')->nullable();

@@ -82,18 +82,17 @@ class OfficerController extends Controller
         return view('dashboard.master-data.officer.midwife-data', compact('midwives'));
     }
 
-public function officerData()
-{
-    $officers = $this->getOfficersByRole(['officer', 'village_head']);
+    public function officerData()
+    {
+        $officers = $this->getOfficersByRole(['officer', 'village_head']);
 
-    // Filter hanya untuk Tenaga Medis Puskesmas
-    $officers = $officers->filter(function ($officer) {
-        return $officer->position === 'Tenaga Medis Puskesmas/Desa';
-    });
+        // Filter hanya untuk Tenaga Medis Puskesmas
+        $officers = $officers->filter(function ($officer) {
+            return $officer->position === 'Tenaga Medis Puskesmas/Desa';
+        });
 
-    return view('dashboard.master-data.officer.officer-data', compact('officers'));
-}
-
+        return view('dashboard.master-data.officer.officer-data', compact('officers'));
+    }
 
     public function show($id)
     {
@@ -118,10 +117,9 @@ public function officerData()
             'gender' => 'required',
             'position' => 'required',
             'address' => 'required',
-            'last_education' => 'required',
+            // 'last_education' => 'nullable',
             'username' => 'nullable',
-            'phone_number' =>
-            'nullable',
+            'phone_number' => 'nullable',
             // 'unique:users,phone_number',
             // Validasi tambahan
             // function ($attribute, $value, $fail) {
@@ -132,7 +130,7 @@ public function officerData()
         ];
 
         $messages = [
-            'nik.required' => 'NIK wajib diisi.',
+            // 'nik.required' => 'NIK wajib diisi.',
             'nik.numeric' => 'NIK harus berupa angka.',
             'nik.unique' => 'NIK sudah terdaftar.',
             'fullname.required' => 'Nama lengkap wajib diisi.',
@@ -142,10 +140,10 @@ public function officerData()
             'gender.required' => 'Jenis kelamin wajib dipilih.',
             'position.required' => 'Jabatan wajib dipilih.',
             'address.required' => 'Alamat wajib diisi.',
-            'last_education.required' => 'Pendidikan terkahir wajib diisi.',
+            // 'last_education.required' => 'Pendidikan terkahir wajib diisi.',
             'username.required' => 'Nama pengguna wajib diisi.',
             'username.unique' => 'Nama pengguna sudah digunakan.',
-            'phone_number.required' => 'Nomor HP/WA wajib diisi.',
+            // 'phone_number.required' => 'Nomor HP/WA wajib diisi.',
             'phone_number.unique' => 'Nomor HP/WA sudah terdaftar.',
         ];
 
@@ -163,14 +161,14 @@ public function officerData()
 
         try {
             $officer = Officer::create([
-                'nik' => $datarandom, // Gunakan NIK acak sebagai default
+                'nik' => array_key_exists('nik', $data) ? $data['nik'] : null, // Gunakan NIK acak sebagai default
                 'fullname' => $data['fullname'],
                 'birth_place' => $data['birth_place'],
                 'date_of_birth' => $data['date_of_birth'],
                 'gender' => $data['gender'],
                 'position' => $data['position'],
                 'address' => $data['address'],
-                'last_education' => $data['last_education'],
+                // 'last_education' => $data['last_education'],
             ]);
 
             switch ($officer->position) {
@@ -191,7 +189,7 @@ public function officerData()
             User::create([
                 'username' => $datarandom,
                 'password' => bcrypt($datarandom),
-                'phone_number' => $data['phone_number'],
+                'phone_number' => $data['phone_number'] ?? null,
                 'role' => $role,
                 'officer_id' => $officer->id,
                 'verified_at' => now(),
@@ -200,12 +198,16 @@ public function officerData()
             // Hapus chace
             $this->clearOfficerCache();
 
-            return redirect($path)->with('success', "Data berhasil ditambahkan. Nama pengguna dan kata sandi menggunakan NIK: {$data['nik']}");
+            return redirect($path)->with('success', 'Data berhasil ditambahkan');
         } catch (\Exception $e) {
             Log::error('Error: ' . $e->getMessage()); // Check 'storage/logs/laravel.log'
 
-            if (isset($officer)) $officer->delete();
-            if (isset($user)) $user->delete();
+            if (isset($officer)) {
+                $officer->delete();
+            }
+            if (isset($user)) {
+                $user->delete();
+            }
 
             return back()->with('error', 'Data gagal ditambahkan. Silakan coba kembali.');
         }
@@ -225,32 +227,20 @@ public function officerData()
         $user = $officer->users()->first();
 
         $rules = [
-            'nik' => $officer->nik === $request->input('nik') ? 'nullable' : 'nullable' . $officer->id,
+            'nik' => 'nullable',
             'fullname' => 'required',
             'birth_place' => 'required',
             'date_of_birth' => 'required|date',
             'gender' => 'required',
             'position' => 'required',
             'address' => 'required',
-            'last_education' => 'required',
-            'username' => $user->username === $request->input('username') ? 'nullable' : 'nullable' . $user->id,
-            'phone_number' => array_filter([
-                'nullable',
-                $user->phone_number !== $request->input('phone_number') ? 'nullable,' . $user->id : null,
-                // Validasi tambahan
-                function ($attribute, $value, $fail) {
-                    if (!(substr($value, 0, 4) === '+628' || substr($value, 0, 2) === '08')) {
-                        $fail('Nomor HP/WA tidak valid.');
-                    }
-                }
-            ]),
-            'status' => 'required',
+            // 'last_education' => 'required',
+            'username' => 'nullable',
+            'phone_number' => 'nullable',
+            // 'status' => 'nullable',
         ];
 
         $messages = [
-            'nik.required' => 'NIK wajib diisi.',
-            'nik.numeric' => 'NIK harus berupa angka.',
-            'nik.unique' => 'NIK sudah terdaftar.',
             'fullname.required' => 'Nama lengkap wajib diisi.',
             'birth_place.required' => 'Tempat lahir wajib diisi.',
             'date_of_birth.required' => 'Tanggal lahir wajib diisi.',
@@ -258,16 +248,12 @@ public function officerData()
             'gender.required' => 'Jenis kelamin wajib dipilih.',
             'position.required' => 'Jabatan wajib dipilih.',
             'address.required' => 'Alamat wajib diisi.',
-            'last_education.required' => 'Pendidikan terkahir wajib diisi.',
-            'username.required' => 'Nama pengguna wajib diisi.',
-            'username.unique' => 'Nama pengguna sudah digunakan.',
-            'phone_number.required' => 'Nomor HP/WA wajib diisi.',
-            'phone_number.unique' => 'Nomor HP/WA sudah terdaftar.',
-            'status' => 'Status akun wajib dipilih.',
+            // 'last_education.required' => 'Pendidikan terakhir wajib diisi.',
+            // 'status.required' => 'Status akun wajib dipilih.',
         ];
 
-        // Konversi nomor '08' ke '+628' (sebelum validasi)
-        if (substr($request->input('phone_number'), 0, 2) === '08') {
+        // Konversi nomor '08' ke '+628'
+        if ($request->filled('phone_number') && substr($request->input('phone_number'), 0, 2) === '08') {
             $request->merge([
                 'phone_number' => '+62' . substr($request->input('phone_number'), 1),
             ]);
@@ -279,51 +265,42 @@ public function officerData()
 
         try {
             $officer->update([
-                'nik' => $data['nik'],
+                'nik' => $data['nik'] ?? null,
                 'fullname' => $data['fullname'],
                 'birth_place' => $data['birth_place'],
                 'date_of_birth' => $data['date_of_birth'],
                 'gender' => $data['gender'],
                 'position' => $data['position'],
                 'address' => $data['address'],
-                'last_education' => $data['last_education'],
+                // 'last_education' => $data['last_education'],
             ]);
 
-            if ($data['status'] === 'Aktif') {
-                $verified_at = now();
-            } else {
-                $verified_at = null;
-            }
+            // $verified_at = $data['status'] === 'Aktif' ? now() : null;
 
+            $user->update([
+                'username' => $data['username'] ?? $user->username,
+                'phone_number' => $data['phone_number'] ?? $user->phone_number,
+                // 'verified_at' => $verified_at,
+            ]);
+
+            $this->clearOfficerCache();
+
+            // Tentukan path redirect sesuai jabatan
             switch ($officer->position) {
                 case 'Admin':
-                    $role = 'admin';
                     $path = url('/admin/officer-data');
                     break;
                 case 'Bidan':
-                    $role = 'midwife';
                     $path = url('/midwife/officer-data');
                     break;
                 default:
-                    $role = 'officer';
                     $path = url('/officer/officer-data');
                     break;
             }
 
-            $user->update([
-                'username' => $data['username'],
-                'phone_number' => $data['phone_number'],
-                'role' => $role,
-                'verified_at' => $verified_at,
-            ]);
-
-            // Hapus chace
-            $this->clearOfficerCache();
-
             return redirect($path)->with('success', 'Data berhasil diperbarui.');
         } catch (\Exception $e) {
-            Log::error('Error: ' . $e->getMessage()); // Check 'storage/logs/laravel.log'
-
+            Log::error('Error: ' . $e->getMessage());
             return back()->with('error', 'Data gagal diperbarui. Silakan coba kembali.');
         }
     }
@@ -388,9 +365,7 @@ public function officerData()
         // Hapus chace
         $this->clearOfficerCache();
 
-        return redirect($path)
-            ->with('success', 'Akun berhasil direset')
-            ->with('whatsapp_url', $whatsapp_url);
+        return redirect($path)->with('success', 'Akun berhasil direset')->with('whatsapp_url', $whatsapp_url);
     }
 
     public function editProfile()
@@ -415,11 +390,11 @@ public function officerData()
         $rules = [
             'nik' => $officer->nik === $request->input('nik') ? 'required|numeric' : 'required|numeric|unique:officers,nik,' . $officer->id,
             'fullname' => 'required',
-            'birth_place' => 'required',
-            'date_of_birth' => 'required|date',
-            'gender' => 'required',
+            // 'birth_place' => 'required',
+            // 'date_of_birth' => 'required|date',
+            // 'gender' => 'required',
             'address' => 'required',
-            'last_education' => 'required',
+            // 'last_education' => 'required',
             'username' => $user->username === $request->input('username') ? 'nullable' : 'nullable|unique:users,username,' . $user->id,
             'phone_number' => array_filter([
                 'nullable',
@@ -429,7 +404,7 @@ public function officerData()
                     if (!(substr($value, 0, 4) === '+628' || substr($value, 0, 2) === '08')) {
                         $fail('Nomor HP/WA tidak valid.');
                     }
-                }
+                },
             ]),
             'password_old' => 'nullable',
             'password' => 'nullable|confirmed|min:8',
@@ -441,12 +416,12 @@ public function officerData()
             'nik.numeric' => 'NIK harus berupa angka.',
             'nik.unique' => 'NIK sudah terdaftar.',
             'fullname.required' => 'Nama lengkap wajib diisi.',
-            'birth_place.required' => 'Tempat lahir wajib diisi.',
-            'date_of_birth.required' => 'Tanggal lahir wajib diisi.',
-            'date_of_birth.date' => 'Tanggal lahir harus berupa tanggal yang valid.',
-            'gender.required' => 'Jenis kelamin wajib dipilih.',
+            // 'birth_place.required' => 'Tempat lahir wajib diisi.',
+            // 'date_of_birth.required' => 'Tanggal lahir wajib diisi.',
+            // 'date_of_birth.date' => 'Tanggal lahir harus berupa tanggal yang valid.',
+            // 'gender.required' => 'Jenis kelamin wajib dipilih.',
             'address.required' => 'Alamat wajib diisi.',
-            'last_education.required' => 'Pendidikan terakhir wajib diisi.',
+            // 'last_education.required' => 'Pendidikan terakhir wajib diisi.',
             'username.required' => 'Nama pengguna wajib diisi.',
             'username.unique' => 'Nama pengguna sudah digunakan.',
             'phone_number.required' => 'Nomor HP/WA wajib diisi.',
@@ -468,23 +443,25 @@ public function officerData()
 
         if ($request->filled('password_old') && $request->filled('password') && $request->filled('password_confirmation')) {
             if (!Hash::check($request->password_old, $user->password)) {
-                return redirect()->back()->withErrors(['password_old' => 'Kata sandi lama salah.']);
+                return redirect()
+                    ->back()
+                    ->withErrors(['password_old' => 'Kata sandi lama salah.']);
             }
 
             $user->password = Hash::make($data['password']);
         }
 
-        $data['date_of_birth'] = Carbon::parse($data['date_of_birth'])->format('Y-m-d');
+        // $data['date_of_birth'] = Carbon::parse($data['date_of_birth'])->format('Y-m-d');
 
         try {
             $officer->update([
                 'nik' => $data['nik'],
                 'fullname' => $data['fullname'],
-                'birth_place' => $data['birth_place'],
-                'date_of_birth' => $data['date_of_birth'],
-                'gender' => $data['gender'],
+                // 'birth_place' => $data['birth_place'],
+                // 'date_of_birth' => $data['date_of_birth'],
+                // 'gender' => $data['gender'],
                 'address' => $data['address'],
-                'last_education' => $data['last_education'],
+                // 'last_education' => $data['last_education'],
             ]);
 
             $user->update([
@@ -501,9 +478,13 @@ public function officerData()
 
             return redirect(url('/officer-profile'))->with('success', 'Profil berhasil diperbarui.');
         } catch (\Exception $e) {
+
             Log::error('Error: ' . $e->getMessage()); // Check 'storage/logs/laravel.log'
 
-            return back()->with('error', 'Profil gagal diperbarui. Silakan coba kembali.');
+            // Kirim pesan error ke view agar bisa ditampilkan di alert error
+            return back()
+            ->withInput()
+            ->with('error', 'Profil gagal diperbarui. Silakan coba kembali. Error: ' . $e->getMessage());
         }
     }
 }

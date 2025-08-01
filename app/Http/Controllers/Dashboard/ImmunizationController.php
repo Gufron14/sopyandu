@@ -130,23 +130,26 @@ class ImmunizationController extends Controller
         return view('dashboard.service.immunization.show', compact('immunization', 'province', 'city', 'subdistrict', 'village'));
     }
 
-    public function create()
-    {
-        $this->checkOfficerPosition();
+public function create()
+{
+    $this->checkOfficerPosition();
 
-        $children = FamilyChildren::with('familyParents')
-            ->select('id', 'nik', 'fullname', 'gender', 'birth_place', 'date_of_birth', 'parent_id')
-            ->orderBy('fullname', 'asc')
-            ->get();
+    $children = FamilyChildren::with('familyParents')
+        ->select('id', 'nik', 'fullname', 'gender', 'birth_place', 'date_of_birth', 'parent_id')
+        ->orderBy('fullname', 'asc')
+        ->get();
 
-        // Ambil vaksin yang belum kedaluwarsa
-        $today = Carbon::today();
-        $vaccines = Vaccine::whereDate('expiry_date', '>=', $today)
-            ->orderBy('vaccine_name', 'asc')
-            ->get();
+    // Ambil vaksin yang belum kedaluwarsa
+    $today = Carbon::today();
+    $vaccines = Vaccine::whereDate('expiry_date', '>=', $today)
+        ->orderBy('vaccine_name', 'asc')
+        ->get();
 
-        return view('dashboard.service.immunization.create', compact('children', 'vaccines'));
-    }
+    // Add vaccine categories
+    $vaccineCategories = ['Wajib', 'Tambahan', 'Khusus', 'Lainnya'];
+    
+    return view('dashboard.service.immunization.create', compact('children', 'vaccines', 'vaccineCategories'));
+}
 
     public function store(Request $request)
     {
@@ -167,7 +170,7 @@ class ImmunizationController extends Controller
             'immunization_date.date' => 'Tanggal imunisasi harus berupa tanggal yang valid.',
             'age_in_checks.required' => 'Usia saat imunisasi wajib diisi.',
             'vaccine_status.required' => 'Status vaksinasi wajib dipilih.',
-            'vaccine_category.required' => 'Kategori vaksinasi wajib dipilih.',
+            'vaccine_type.required' => 'Kategori vaksinasi wajib dipilih.',
             'vaccine_id.required' => 'Nama vaksin wajib dipilih.',
             'side_effects.max' => 'Efek samping maksimal 255 karakter.',
             'notes.max' => 'Keterangan maksimal 255 karakter.',
@@ -176,7 +179,7 @@ class ImmunizationController extends Controller
 
         if ($request->vaccine_status === 'Ya') {
             $rules['vaccine_id'] = 'required';
-            $rules['vaccine_category'] = 'required';
+            $rules['vaccine_type'] = 'required';
             $rules['side_effects'] = 'nullable|string|max:255';
         }
 
@@ -197,7 +200,7 @@ class ImmunizationController extends Controller
         // Format dan siapkan data
         $data['immunization_date'] = Carbon::parse($data['immunization_date'])->format('Y-m-d');
         $data['vaccine_id'] = $data['vaccine_status'] === 'Ya' ? $data['vaccine_id'] : null;
-        $data['vaccine_category'] = $data['vaccine_status'] === 'Ya' ? $data['vaccine_category'] : '-';
+        $data['vaccine_category'] = $data['vaccine_status'] === 'Ya' ? $data['vaccine_type'] : '-';
         $data['side_effects'] = $data['vaccine_status'] === 'Ya' ? ($data['side_effects'] ?? null) : null;
 
         try {
@@ -282,7 +285,7 @@ class ImmunizationController extends Controller
             'immunization_date.date' => 'Tanggal imunisasi harus berupa tanggal yang valid.',
             'age_in_checks.required' => 'Usia saat imunisasi wajib diisi.',
             'vaccine_status.required' => 'Status vaksinasi wajib dipilih.',
-            'vaccine_category.required' => 'Kategori vaksinasi wajib dipilih.',
+            'vaccine_type.required' => 'Kategori vaksinasi wajib dipilih.',
             'vaccine_id.required' => 'Nama vaksin wajib dipilih.',
             'side_effects.max' => 'Efek samping maksimal 255 karakter.',
             'notes.max' => 'Keterangan maksimal 255 karakter.',
@@ -291,7 +294,7 @@ class ImmunizationController extends Controller
 
         if ($request->vaccine_status === 'Ya') {
             $rules['vaccine_id'] = 'required';
-            $rules['vaccine_category'] = 'required';
+            $rules['vaccine_type'] = 'required';
             $rules['side_effects'] = 'nullable|string|max:255';
         }
 
@@ -311,7 +314,7 @@ class ImmunizationController extends Controller
 
         $data['immunization_date'] = Carbon::parse($data['immunization_date'])->format('Y-m-d');
         $data['vaccine_id'] = $data['vaccine_status'] === 'Ya' ? $data['vaccine_id'] : null;
-        $data['vaccine_category'] = $data['vaccine_status'] === 'Ya' ? $data['vaccine_category'] : '-';
+        $data['vaccine_category'] = $data['vaccine_status'] === 'Ya' ? $data['vaccine_type'] : '-';
         $data['side_effects'] = $data['vaccine_status'] === 'Ya' ? ($data['side_effects'] ?? null) : null;
 
         try {
@@ -695,6 +698,30 @@ class ImmunizationController extends Controller
 
             return back()->with('error', 'Obat gagal dihapus. Silakan coba kembali.');
         }
+    }
+
+    public function getVaccinesByType($type)
+    {
+        $today = Carbon::today();
+        $vaccines = Vaccine::where('vaccine_type', $type)
+            ->whereDate('expiry_date', '>=', $today)
+            ->orderBy('vaccine_name', 'asc')
+            ->get()
+            ->map(function ($vaccine) {
+                return [
+                    'id' => $vaccine->id,
+                    'vaccine_name' => $vaccine->vaccine_name,
+                    'unit' => $vaccine->unit,
+                    'stock' => $vaccine->stock,
+                    'entry_date' => $vaccine->entry_date,
+                    'expiry_date' => $vaccine->expiry_date,
+                    'vaccine_type' => $vaccine->vaccine_type,
+                    'display_text' => $vaccine->vaccine_name . ', Kedaluwarsa: ' . 
+                        Carbon::parse($vaccine->expiry_date)->locale('id')->isoFormat('D MMMM YYYY')
+                ];
+            });
+
+        return response()->json($vaccines);
     }
 
     public function getImmunizationStatistics($year)

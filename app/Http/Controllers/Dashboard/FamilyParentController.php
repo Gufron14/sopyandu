@@ -378,26 +378,26 @@ public function printReport(Request $request)
 
         $rules = [
             'nik' => $parent->nik === $request->input('nik') ? 'required|numeric' : 'required|numeric|unique:family_parents,nik,' . $parent->id,
-            'mother_fullname' => 'required',
-            'mother_birth_place' => 'required',
-            'mother_date_of_birth' => 'required|date',
-            'mother_blood_type' => 'required',
-            'father_nik' => 'required',
-            'father_fullname' => 'required',
-            'father_birth_place' => 'required',
-            'father_date_of_birth' => 'required|date',
-            'father_blood_type' => 'required',
-            'is_pregnant' => 'required',
-            'number_of_children' => 'required|numeric',
-            'address' => 'required',
-            'province' => 'required',
-            'city' => 'required',
-            'subdistrict' => 'required',
-            'village' => 'required',
-            'hamlet' => 'required',
-            'username' => $user->username === $request->input('username') ? 'required' : 'required|unique:users,username,' . $user->id,
+            'mother_fullname' => 'nullable',
+            'mother_birth_place' => 'nullable',
+            'mother_date_of_birth' => 'nullable|date',
+            'mother_blood_type' => 'nullable',
+            'father_nik' => 'nullable',
+            'father_fullname' => 'nullable',
+            'father_birth_place' => 'nullable',
+            'father_date_of_birth' => 'nullable|date',
+            'father_blood_type' => 'nullable',
+            'is_pregnant' => 'nullable',
+            'number_of_children' => 'nullable|numeric',
+            'address' => 'nullable',
+            'province' => 'nullable',
+            'city' => 'nullable',
+            'subdistrict' => 'nullable',
+            'village' => 'nullable',
+            'hamlet' => 'nullable',
+            'username' => $user->username === $request->input('username') ? 'nullable' : 'required|unique:users,username,' . $user->id,
             'phone_number' => array_filter([
-                'required',
+                'nullable',
                 $user->phone_number !== $request->input('phone_number') ? 'unique:users,phone_number,' . $user->id : null,
                 // Validasi tambahan
                 function ($attribute, $value, $fail) {
@@ -406,7 +406,7 @@ public function printReport(Request $request)
                     }
                 },
             ]),
-            'status' => 'required',
+            'status' => 'nullable',
         ];
 
         $messages = [

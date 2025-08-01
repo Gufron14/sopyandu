@@ -25,13 +25,15 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            @if (auth()->check() && auth()->user()->role == 'admin')
-                                <div class=" d-flex justify-content-between align-items-center mb-4">
+                            @if (auth()->check() && (auth()->user()->role == 'admin' || auth()->user()->role == 'midwife'))
+                                <div class="d-flex justify-content-between align-items-center mb-4">
                                     @include('components.role-list')
-
-                                    <a href="{{ url('/officer-data/create') }}" class="btn btn-primary ml-auto">Tambah</a>
                                 </div>
                             @endif
+                                @if (auth()->user()->role == 'admin')
+                                    <a href="{{ url('/officer-data/create') }}"
+                                        class="btn btn-primary ml-auto">Tambah</a>
+                                @endif
 
 
                             <div class="table-responsive">
@@ -64,7 +66,14 @@
                                                 <td class="text-right">
                                                     {{ $data->users->first()->phone_number ?? 'N/A' }}
                                                 </td>
-                                                <td>{{ $data->position ?? 'N/A' }}</td>
+                                                <td>
+                                                    @if ($data->position === 'Admin')
+                                                        Kader
+                                                    @else
+                                                        {{ $data->position ?? 'N/A' }}
+                                                    @endif
+                                                    
+                                                    {{-- {{ $data->position ?? 'N/A' }}</td> --}}
                                                 <td class="text-center">
                                                     @if (!empty($data->users->first()->verified_at) || $data->users->first()->verified_at !== null)
                                                         <span class="badge badge-success">Aktif</span>
@@ -78,7 +87,7 @@
                                                             class="btn btn-info" data-toggle="tooltip" title="Detail">
                                                             <i class="fas fa-info-circle"></i>
                                                         </a>
-                                                        @if (auth()->check() && auth()->user()->role == 'admin')
+                                                        @if (auth()->check() && auth()->user()->role === 'admin')
                                                             <a href="{{ url("/officer-data/{$data->id}/edit") }}"
                                                                 class="btn btn-primary" data-toggle="tooltip"
                                                                 title="Ubah">

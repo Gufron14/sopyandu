@@ -25,16 +25,18 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class=" d-flex justify-content-between align-items-center mb-4" style="gap: .5rem">
-                                <a href="{{ url('/immunization-data') }}" class="btn btn-warning ml-auto"><i
-                                        class="fas fa-clock-rotate-left mr-1"></i>
-                                    Riwayat Pemberian Vaksin</a>
-                                <button type="button" data-toggle="modal" data-target="#reportModal"
-                                    class="btn btn-success">
+                            <div class="d-flex justify-content-between align-items-center mb-4" style="gap: .5rem">
+                                <a href="{{ url('/immunization-data') }}" class="btn btn-warning ml-auto">
+                                    <i class="fas fa-clock-rotate-left mr-1"></i>
+                                    Riwayat Pemberian Vaksin
+                                </a>
+                                <button type="button" data-toggle="modal" data-target="#reportModal" class="btn btn-success">
                                     <i class="fas fa-print mr-1"></i> Cetak Laporan
                                 </button>
-                                <a href="{{ url('/vaccine-data/create') }}" class="btn btn-primary">Tambah</a>
-                            </div>
+                                @unless(auth()->user()->role === 'admin')
+                                    <a href="{{ url('/vaccine-data/create') }}" class="btn btn-primary">Tambah</a>
+                                    @endunless
+                                </div>
 
                             <div class="table-responsive">
                                 @php
@@ -53,7 +55,9 @@
                                             <th>Tgl Input</th>
                                             <th>Tgl Kedaluwarsa</th>
                                             <th>Keterangan</th>
-                                            <th>Aksi</th>
+                                            @if(auth()->user()->role === 'midwife')
+                                                <th>Aksi</th>
+                                            @endif
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -76,6 +80,7 @@
                                                     <td class="text-center">{{ $vaccine->entry_date ?? 'N/A' }}</td>
                                                     <td class="text-center">{{ $vaccine->expiry_date ?? 'N/A' }}</td>
                                                     <td>{{ $vaccine->notes ?? 'N/A' }}</td>
+                                                    @if(auth()->user()->role === 'midwife')
                                                     <td>
                                                         <div class="d-flex justify-content-center" style="gap: .5rem">
                                                             <a href="{{ url("/vaccine-data/{$vaccine->id}/edit") }}"
@@ -95,6 +100,7 @@
                                                             </form>
                                                         </div>
                                                     </td>
+                                                    @endif
                                                 </tr>
                                             @endforeach
                                         @endforeach

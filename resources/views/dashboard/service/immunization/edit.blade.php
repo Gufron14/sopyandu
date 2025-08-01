@@ -153,30 +153,30 @@
                                     </div>
 
                                     <div class="form-group col-md-6 vaccine-section d-none">
-                                        <label for="vaccine_category">Kategori Vaksinasi <span
+                                        <label for="vaccine_type">Kategori Vaksinasi <span
                                                 class="text-danger">*</span></label>
-                                        <select name="vaccine_category" id="vaccine_category"
-                                            class="form-control @error('vaccine_category') is-invalid @enderror" disabled>
+                                        <select name="vaccine_type" id="vaccine_type"
+                                            class="form-control @error('vaccine_type') is-invalid @enderror" disabled>
                                             <option value="" selected disabled>-- Pilih Kategori Vaksinasi --
                                             </option>
                                             <option value="Wajib"
-                                                {{ old('vaccine_category', $immunization->vaccine_category) == 'Wajib' ? 'selected' : '' }}>
+                                                {{ old('vaccine_type', $immunization->vaccine_category) == 'Wajib' ? 'selected' : '' }}>
                                                 Wajib
                                             </option>
                                             <option value="Tambahan"
-                                                {{ old('vaccine_category', $immunization->vaccine_category) == 'Tambahan' ? 'selected' : '' }}>
+                                                {{ old('vaccine_type', $immunization->vaccine_category) == 'Tambahan' ? 'selected' : '' }}>
                                                 Tambahan
                                             </option>
                                             <option value="Khusus"
-                                                {{ old('vaccine_category', $immunization->vaccine_category) == 'Khusus' ? 'selected' : '' }}>
+                                                {{ old('vaccine_type', $immunization->vaccine_category) == 'Khusus' ? 'selected' : '' }}>
                                                 Khusus
                                             </option>
                                             <option value="Lainnya"
-                                                {{ old('vaccine_category', $immunization->vaccine_category) == 'Lainnya' ? 'selected' : '' }}>
+                                                {{ old('vaccine_type', $immunization->vaccine_category) == 'Lainnya' ? 'selected' : '' }}>
                                                 Lainnya
                                             </option>
                                         </select>
-                                        @error('vaccine_category')
+                                        @error('vaccine_type')
                                             <div class="invalid-feedback">
                                                 {{ $message }}
                                             </div>
@@ -191,11 +191,13 @@
                                             <option value="" selected disabled>-- Pilih Nama Vaksin --
                                             </option>
                                             @foreach ($vaccines as $vaccine)
-                                                <option value="{{ $vaccine->id }}" data-unit="{{ $vaccine->unit }}"
-                                                    data-stock="{{ $vaccine->stock }}"
-                                                    data-entry_date="{{ $vaccine->entry_date }}"
-                                                    data-expiry_date="{{ $vaccine->expiry_date }}"
-                                                    {{ old('vaccine_id', $immunization->vaccine_id) == $vaccine->id ? 'selected' : '' }}>
+                                            <option value="{{ $vaccine->id }}" 
+                                            data-unit="{{ $vaccine->unit }}"
+                                            data-stock="{{ $vaccine->stock }}"
+                                            data-entry_date="{{ $vaccine->entry_date }}"
+                                            data-expiry_date="{{ $vaccine->expiry_date }}"
+                                            data-vaccine_type="{{ $vaccine->vaccine_type }}"
+                                                {{ old('vaccine_id', $immunization->vaccine_id) == $vaccine->id ? 'selected' : '' }}>
                                                     {{ $vaccine->vaccine_name . ', Kedaluwarsa: ' . \Carbon\Carbon::parse($vaccine->expiry_date)->locale('id')->isoFormat('D MMMM YYYY') }}
                                                 </option>
                                             @endforeach
@@ -372,10 +374,10 @@
                         $('#vaccine_id').prop('disabled', false).select2(); // Reinit select2
                     }, 10);
 
-                    $('#vaccine_category, #side_effects').prop('disabled', false);
+                    $('#vaccine_type, #side_effects').prop('disabled', false);
                 } else {
                     $('.vaccine-section').addClass('d-none'); // Sembunyikan semua
-                    $('#vaccine_category, #vaccine_id, #unit, #stock, #entry_date, #expiry_date, #side_effects')
+                    $('#vaccine_type, #vaccine_id, #unit, #stock, #entry_date, #expiry_date, #side_effects')
                         .val('')
                         .prop('disabled', true);
 
@@ -393,6 +395,57 @@
                 $('#stock').trigger('input'); // ← Trigger pengecekan stok otomatis
             }
 
+            function loadVaccinesByType(selectedType) {
+                if (!selectedType) {
+                    $('#vaccine_id').empty().append('<option value="" selected disabled>-- Pilih Nama Vaksin --</option>');
+                    $('#vaccine_id').prop('disabled', true);
+                    return;
+                }
+
+                // Show loading state
+                $('#vaccine_id').empty().append('<option value="" selected disabled>Loading...</option>');
+
+                // Fetch vaccines by type via AJAX
+                $.ajax({
+                    url: `/api/vaccines/type/${selectedType}`,
+                    method: 'GET',
+                    success: function(vaccines) {
+                        $('#vaccine_id').empty().append('<option value="" selected disabled>-- Pilih Nama Vaksin --</option>');
+                        
+                        vaccines.forEach(function(vaccine) {
+                            const isSelected = vaccine.id == {{ $immunization->vaccine_id ?: 'null' }};
+                            $('#vaccine_id').append(`
+                                <option value="${vaccine.id}" 
+                                    data-unit="${vaccine.unit}"
+                                    data-stock="${vaccine.stock}"
+                                    data-entry_date="${vaccine.entry_date}"
+                                    data-expiry_date="${vaccine.expiry_date}"
+                                    data-vaccine_type="${vaccine.vaccine_type}"
+                                    ${isSelected ? 'selected' : ''}>
+                                    ${vaccine.display_text}
+                                </option>
+                            `);
+                        });
+
+                        $('#vaccine_id').prop('disabled', false);
+
+                        // Fill vaccine details if vaccine is selected
+                        if ($('#vaccine_id').val()) {
+                            fillVaccineDetails();
+                        }
+                    },
+                    error: function() {
+                        $('#vaccine_id').empty().append('<option value="" selected disabled>Error loading vaccines</option>');
+                        console.error('Failed to load vaccines');
+                    }
+                });
+            }
+
+            $('#vaccine_type').on('change', function() {
+                const selectedType = $(this).val();
+                loadVaccinesByType(selectedType);
+            });
+
             // Trigger saat nilai status vaksinasi berubah
             $('#vaccine_status').on('change', function() {
                 const status = $(this).val();
@@ -409,8 +462,10 @@
             if (selectedStatus) {
                 toggleVaccineSection(selectedStatus);
 
-                // Jika vaksin dipilih sebelumnya, isi detailnya juga
-                if ($('#vaccine_id').val()) {
+                const selectedType = $('#vaccine_type').val();
+                if (selectedType) {
+                    loadVaccinesByType(selectedType);
+                } else if ($('#vaccine_id').val()) {
                     fillVaccineDetails();
                 }
             }

@@ -42,7 +42,7 @@ return new class extends Migration
             $table->id();
             $table->string('username')->unique();
             $table->string('password');
-            $table->string('phone_number')->unique();
+            $table->string('phone_number')->unique()->nullable();
             $table->enum('role', ['admin', 'village_head', 'midwife', 'officer', 'family_parent']);
             $table->unsignedBigInteger('officer_id')->nullable();
             $table->foreign('officer_id')->references('id')->on('officers')->onDelete('cascade');

@@ -64,8 +64,6 @@
                                     </div>
                                 </div>
 
-
-
                                 <div class="row">
                                     <label for="" class="form-label fs-5 fw-bold">Pemeriksaan</label>
 
@@ -138,12 +136,64 @@
                                             <span class="input-group-text">Status</span>
                                             <input type="text" name="bmi_status" id="imt_status" value=""
                                                 class="form-control" readonly>
-                                            {{-- <input type="hidden" name="bmi" id="bmi_value"> --}}
                                             <span class="input-group-text">IMT</span>
                                             <input type="text" class="form-control" readonly id="bmi_value"
                                                 value="" placeholder="0.0">
                                         </div>
                                     </div>
+
+                                    <div class="form-group col-md-4">
+                                        <label for="status_vaksin" class="form-label">Status Vaksin</label>
+                                        <select name="status_vaksin" id="status_vaksin"
+                                            class="form-select @error('status_vaksin') is-invalid @enderror">
+                                            <option value="" selected disabled>-- Pilih Status Vaksin --</option>
+                                            <option value="Sudah">Sudah Divaksin</option>
+                                            {{-- <option value="Sekarang">Divaksin Sekarang</option> --}}
+                                            <option value="Tidak">Belum Divaksin</option>
+                                        </select>
+                                        @error('status_vaksin')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-group col-md-4" id="jenis_vaksin_group" style="display: none;">
+                                        <label for="jenis_vaksin">Jenis Vaksin <span
+                                                class="text-danger">*</span></label>
+                                        <select name="jenis_vaksin" id="jenis_vaksin"
+                                            class="form-select @error('jenis_vaksin') is-invalid @enderror">
+                                            <option value="" selected disabled>-- Pilih Jenis Vaksin --</option>
+                                            <option value="Wajib"
+                                                {{ old('jenis_vaksin') == 'Wajib' ? 'selected' : '' }}>
+                                                Wajib</option>
+                                            <option value="Tambahan"
+                                                {{ old('jenis_vaksin') == 'Tambahan' ? 'selected' : '' }}>Tambahan
+                                            </option>
+                                            <option value="Khusus"
+                                                {{ old('jenis_vaksin') == 'Khusus' ? 'selected' : '' }}>
+                                                Khusus</option>
+                                        </select>
+                                        @error('jenis_vaksin')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-group col-md-4" id="vaccine_id_group" style="display: none;">
+                                        <label for="vaccine_id">Nama Vaksin <span class="text-danger">*</span></label>
+                                        <select name="vaccine_id" id="vaccine_id"
+                                            class="form-select @error('vaccine_id') is-invalid @enderror">
+                                            <option value="" selected disabled>-- Pilih Nama Vaksin --</option>
+                                        </select>
+                                        @error('vaccine_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <h5>Khusus Bidan</h5>
+
+                                    @php
+                                        $isAdmin = Auth::user()->role === 'admin';
+                                        $readonly = $isAdmin ? 'readonly' : '';
+                                    @endphp
 
                                     <div class="form-group col-md-6">
                                         <label for="blood_pressure">Tekanan Darah <span
@@ -151,7 +201,7 @@
                                         <input id="blood_pressure" type="text"
                                             class="form-control @error('blood_pressure') is-invalid @enderror"
                                             name="blood_pressure" value="{{ old('blood_pressure') }}"
-                                            placeholder="Contoh: 120/80">
+                                            placeholder="Contoh: 120/80" {{ $readonly }}>
                                         @error('blood_pressure')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -162,7 +212,7 @@
                                                 class="text-danger">*</span></label>
                                         <input id="pulse_rate" type="text"
                                             class="form-control @error('pulse_rate') is-invalid @enderror"
-                                            name="pulse_rate" value="{{ old('pulse_rate') }}" placeholder="Contoh: 80">
+                                            name="pulse_rate" value="{{ old('pulse_rate') }}" placeholder="Contoh: 80" {{ $readonly }}>
                                         @error('pulse_rate')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -173,7 +223,7 @@
                                         <input id="blood_sugar" type="text"
                                             class="form-control @error('blood_sugar') is-invalid @enderror"
                                             name="blood_sugar" value="{{ old('blood_sugar') }}"
-                                            placeholder="Contoh: 90.5">
+                                            placeholder="Contoh: 90.5" {{ $readonly }}>
                                         @error('blood_sugar')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -184,7 +234,7 @@
                                         <input id="cholesterol" type="text"
                                             class="form-control @error('cholesterol') is-invalid @enderror"
                                             name="cholesterol" value="{{ old('cholesterol') }}"
-                                            placeholder="Contoh: 200.0">
+                                            placeholder="Contoh: 200.0" {{ $readonly }}>
                                         @error('cholesterol')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -195,7 +245,7 @@
                                         <input id="fundus_height" type="text"
                                             class="form-control @error('fundus_height') is-invalid @enderror"
                                             name="fundus_height" value="{{ old('fundus_height') }}"
-                                            placeholder="Contoh: 30">
+                                            placeholder="Contoh: 30" {{ $readonly }}>
                                         @error('fundus_height')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -206,7 +256,7 @@
                                         <input id="fetal_heart_rate" type="text"
                                             class="form-control @error('fetal_heart_rate') is-invalid @enderror"
                                             name="fetal_heart_rate" value="{{ old('fetal_heart_rate') }}"
-                                            placeholder="Contoh: 140">
+                                            placeholder="Contoh: 140" {{ $readonly }}>
                                         @error('fetal_heart_rate')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -216,7 +266,7 @@
                                         <label for="fetal_presentation">Presentasi Janin <span
                                                 class="text-danger">*</span></label>
                                         <select name="fetal_presentation" id="fetal_presentation"
-                                            class="form-control @error('fetal_presentation') is-invalid @enderror">
+                                            class="form-control @error('fetal_presentation') is-invalid @enderror" {{ $readonly }}>
                                             <option value="" selected disabled>-- Pilih Presentasi Janin --</option>
                                             <option value="Kepala"
                                                 {{ old('fetal_presentation') == 'Kepala' ? 'selected' : '' }}>Kepala
@@ -236,7 +286,7 @@
                                     <div class="form-group col-md-6">
                                         <label for="edema">Edema <span class="text-danger">*</span></label>
                                         <select name="edema" id="edema"
-                                            class="form-control @error('edema') is-invalid @enderror">
+                                            class="form-control @error('edema') is-invalid @enderror" {{ $readonly }}>
                                             <option value="" selected disabled>-- Pilih Tingkat Edema --</option>
                                             <option value="Tidak" {{ old('edema') == 'Tidak' ? 'selected' : '' }}>Tidak
                                             </option>
@@ -252,65 +302,10 @@
                                         @enderror
                                     </div>
 
-                                    <div class="d-flex gap-4">
-                                        <div class="form-group">
-                                            <label for="status_vaksin" class="form-label">Status Vaksin <span
-                                                    class="text-danger">*</span></label>
-                                            <select name="status_vaksin" id="status_vaksin"
-                                                class="form-select @error('status_vaksin') is-invalid @enderror">
-                                                <option value="" selected disabled>-- Pilih Status Vaksin --</option>
-                                                <option value="Sudah"
-                                                    {{ old('status_vaksin') == 'Sudah' ? 'selected' : '' }}>
-                                                    Sudah Divaksin</option>
-                                                <option value="Sekarang"
-                                                    {{ old('status_vaksin') == 'Sekarang' ? 'selected' : '' }}>Divaksin
-                                                    Sekarang</option>
-                                                <option value="Tidak"
-                                                    {{ old('status_vaksin') == 'Tidak' ? 'selected' : '' }}>
-                                                    Tidak Divaksin</option>
-                                            </select>
-                                            @error('status_vaksin')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-
-                                        <div class="form-group" id="jenis_vaksin_group" style="display: none;">
-                                            <label for="jenis_vaksin">Jenis Vaksin <span
-                                                    class="text-danger">*</span></label>
-                                            <select name="jenis_vaksin" id="jenis_vaksin"
-                                                class="form-select @error('jenis_vaksin') is-invalid @enderror">
-                                                <option value="" selected disabled>-- Pilih Jenis Vaksin --</option>
-                                                <option value="Wajib"
-                                                    {{ old('jenis_vaksin') == 'Wajib' ? 'selected' : '' }}>
-                                                    Wajib</option>
-                                                <option value="Tambahan"
-                                                    {{ old('jenis_vaksin') == 'Tambahan' ? 'selected' : '' }}>Tambahan
-                                                </option>
-                                                <option value="Khusus"
-                                                    {{ old('jenis_vaksin') == 'Khusus' ? 'selected' : '' }}>
-                                                    Khusus</option>
-                                            </select>
-                                            @error('jenis_vaksin')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-
-<div class="form-group" id="vaccine_id_group" style="display: none;">
-    <label for="vaccine_id">Nama Vaksin <span class="text-danger">*</span></label>
-    <select name="vaccine_id" id="vaccine_id"
-        class="form-select @error('vaccine_id') is-invalid @enderror">
-        <option value="" selected disabled>-- Pilih Nama Vaksin --</option>
-    </select>
-    @error('vaccine_id')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
-                                    </div>
-
                                     <div class="form-group col-md-6">
                                         <label for="notes">Keterangan</label>
                                         <textarea name="notes" id="notes" class="form-control @error('notes') is-invalid @enderror summernote-simple"
-                                            rows="5" data-placeholder="Jika ada keterangan atau catatan silakan isi">{{ old('notes') }}</textarea>
+                                            rows="5" data-placeholder="Jika ada keterangan atau catatan silakan isi" {{ $readonly }}>{{ old('notes') }}</textarea>
                                         @error('notes')
                                             <div class="invalid-feedback">
                                                 {{ $message }}
@@ -387,28 +382,28 @@
             });
 
             // Handle vaccine status change
-$('#status_vaksin').on('change', function() {
-    const selectedValue = $(this).val();
+            $('#status_vaksin').on('change', function() {
+                const selectedValue = $(this).val();
 
-    if (selectedValue === 'Sekarang') {
-        $('#jenis_vaksin_group').show();
-        $('#vaccine_id_group').show();
-        $('#jenis_vaksin').prop('required', true);
-        $('#vaccine_id').prop('required', true);
-        $('#vaccine_id').prop('disabled', false);
-    } else {
-        $('#jenis_vaksin_group').hide();
-        $('#vaccine_id_group').hide();
-        $('#jenis_vaksin').prop('required', false);
-        $('#vaccine_id').prop('required', false);
-        $('#jenis_vaksin').val('');
-        $('#vaccine_id').val('');
-        $('#vaccine_id').empty().append(
-            '<option value="" selected disabled>-- Pilih Nama Vaksin --</option>');
-        $('#vaccine_id').prop('disabled', true);
-        $('#vaccine_id_group .text-danger').remove();
-    }
-});
+                if (selectedValue === 'Sekarang') {
+                    $('#jenis_vaksin_group').show();
+                    $('#vaccine_id_group').show();
+                    $('#jenis_vaksin').prop('required', true);
+                    $('#vaccine_id').prop('required', true);
+                    $('#vaccine_id').prop('disabled', false);
+                } else {
+                    $('#jenis_vaksin_group').hide();
+                    $('#vaccine_id_group').hide();
+                    $('#jenis_vaksin').prop('required', false);
+                    $('#vaccine_id').prop('required', false);
+                    $('#jenis_vaksin').val('');
+                    $('#vaccine_id').val('');
+                    $('#vaccine_id').empty().append(
+                        '<option value="" selected disabled>-- Pilih Nama Vaksin --</option>');
+                    $('#vaccine_id').prop('disabled', true);
+                    $('#vaccine_id_group .text-danger').remove();
+                }
+            });
 
             // Handle vaccine type change
             $('#jenis_vaksin').on('change', function() {
