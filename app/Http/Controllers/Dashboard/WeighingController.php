@@ -71,17 +71,26 @@ class WeighingController extends Controller
 
             $currentYear = now()->year;
             $requestedYear = request('year'); // Tangkap input dari dropdown (jika ada)
+            $requestedMonth = request('month');
+            $requestedNutrition = request('nutrition_status');
 
             // Tentukan tahun yang akan digunakan untuk filter
             $selectedYear = $requestedYear ?? ($availableYears->contains($currentYear) ? $currentYear : $availableYears->first());
 
-            // Ambil data sesuai tahun yang dipilih
-            $weighings = Cache::remember("{$cacheKey}_{$selectedYear}", 300, function () use ($selectedYear) {
-                return Weighing::with(['familyChildren', 'officers'])
-                    ->whereYear('weighing_date', $selectedYear)
-                    ->orderBy('weighing_date', 'desc')
-                    ->get();
-            });
+            // Query builder dasar
+            $query = Weighing::with(['familyChildren', 'officers'])
+                ->whereYear('weighing_date', $selectedYear);
+
+            // Filter bulan jika ada
+            if ($requestedMonth) {
+                $query->whereMonth('weighing_date', $requestedMonth);
+            }
+            // Filter status gizi jika ada
+            if ($requestedNutrition && in_array($requestedNutrition, ['Baik', 'Buruk', 'Kurang', 'Lebih'])) {
+                $query->where('nutrition_status', $requestedNutrition);
+            }
+
+            $weighings = $query->orderBy('weighing_date', 'desc')->get();
         }
 
         return view('dashboard.service.weighing.index', compact('weighings', 'availableYears', 'selectedYear'));
@@ -375,12 +384,23 @@ class WeighingController extends Controller
         $statuses = ['Baik', 'Buruk', 'Kurang', 'Lebih'];
 
         // Ambil data penimbangan per bulan per status
-        $monthlyStats = Weighing::selectRaw('MONTH(weighing_date) as month, nutrition_status, COUNT(DISTINCT children_id) as total')->whereYear('weighing_date', $year)->groupByRaw('MONTH(weighing_date), nutrition_status')->get();
+        $monthlyStats = Weighing::selectRaw('MONTH(weighing_date) as month, nutrition_status, COUNT(DISTINCT children_id) as total')
+            ->whereYear('weighing_date', $year)
+            ->groupByRaw('MONTH(weighing_date), nutrition_status')
+            ->get();
+
+        // Ambil nama anak per bulan per status
+        $monthlyChildren = Weighing::with('familyChildren')
+            ->selectRaw('id, children_id, nutrition_status, MONTH(weighing_date) as month')
+            ->whereYear('weighing_date', $year)
+            ->get();
 
         // Inisialisasi struktur data bulanan
         $data = [];
+        $childrenNames = [];
         for ($i = 1; $i <= 12; $i++) {
             $data[$i] = array_fill_keys($statuses, 0);
+            $childrenNames[$i] = array_fill_keys($statuses, []);
         }
 
         // Masukkan data bulanan dari query ke array
@@ -391,6 +411,18 @@ class WeighingController extends Controller
 
             if (isset($data[$month][$status])) {
                 $data[$month][$status] = $total;
+            }
+        }
+
+        // Masukkan nama anak ke array
+        foreach ($monthlyChildren as $item) {
+            $month = (int) $item->month;
+            $status = $item->nutrition_status;
+            $fullname = $item->familyChildren ? $item->familyChildren->fullname : null;
+            if ($fullname && isset($childrenNames[$month][$status])) {
+                if (!in_array($fullname, $childrenNames[$month][$status])) {
+                    $childrenNames[$month][$status][] = $fullname;
+                }
             }
         }
 
@@ -411,6 +443,7 @@ class WeighingController extends Controller
         return response()->json([
             'data' => $data,
             'total' => $totalPerStatus,
+            'children_names' => $childrenNames,
         ]);
     }
 

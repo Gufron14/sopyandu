@@ -32,21 +32,54 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 @if (Auth::user() && Auth::user()->role !== 'family_parent')
-                                    <form method="GET" action="{{ route('weighing-data.index') }}" style="width: 10rem">
-                                        <div class="input-group">
-                                            <label class="input-group-prepend" for="year">
-                                                <span class="input-group-text bg-light">Tahun</span>
-                                            </label>
-                                            <select class="custom-select select2" name="year" id="year"
-                                                onchange="this.form.submit()">
-                                                @foreach ($availableYears as $year)
-                                                    <option value="{{ $year }}"
-                                                        {{ $year == $selectedYear ? 'selected' : '' }}>
-                                                        {{ $year }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                    <form method="GET" action="{{ route('weighing-data.index') }}" style="width: 32rem; display: flex; gap: 1rem; align-items: center;">
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text bg-light">Tahun</span>
+                </div>
+                <select class="form-control" name="year" id="year" onchange="this.form.submit()">
+                    @foreach ($availableYears as $year)
+                        <option value="{{ $year }}" {{ $year == request('year', $selectedYear) ? 'selected' : '' }}>
+                            {{ $year }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group col-md-4">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text bg-light">Bulan</span>
+                </div>
+                <select class="form-control" name="month" id="month" onchange="this.form.submit()">
+                    <option value="">Semua</option>
+                    @for ($m = 1; $m <= 12; $m++)
+                        <option value="{{ $m }}" {{ $m == request('month') ? 'selected' : '' }}>
+                            {{ DateTime::createFromFormat('!m', $m)->format('F') }}
+                        </option>
+                    @endfor
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group col-md-4">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text bg-light">Status Gizi</span>
+                </div>
+                <select class="form-control" name="nutrition_status" id="nutrition_status" onchange="this.form.submit()">
+                    <option value="">Semua</option>
+                    <option value="Baik" {{ request('nutrition_status') == 'Baik' ? 'selected' : '' }}>Baik</option>
+                    <option value="Buruk" {{ request('nutrition_status') == 'Buruk' ? 'selected' : '' }}>Buruk</option>
+                    <option value="Kurang" {{ request('nutrition_status') == 'Kurang' ? 'selected' : '' }}>Kurang</option>
+                    <option value="Lebih" {{ request('nutrition_status') == 'Lebih' ? 'selected' : '' }}>Lebih</option>
+                </select>
+            </div>
+        </div>
+    </div>
                                     </form>
                                 @endif
 

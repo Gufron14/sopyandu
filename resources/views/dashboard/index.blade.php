@@ -1116,7 +1116,26 @@
                             },
                             tooltips: {
                                 mode: 'index',
-                                intersect: false
+                                intersect: false,
+                                callbacks: {
+                                    afterLabel: function(tooltipItem, data) {
+                                        const datasetIndex = tooltipItem.datasetIndex;
+                                        const dataIndex = tooltipItem.index;
+                                        const status = data.datasets[datasetIndex].label;
+                                        const monthIndex = dataIndex + 1; // Month is 1-indexed
+                                        
+                                        // Get children names for this status and month
+                                        if (window.chartChildrenNames && 
+                                            window.chartChildrenNames[monthIndex] && 
+                                            window.chartChildrenNames[monthIndex][status] &&
+                                            window.chartChildrenNames[monthIndex][status].length > 0) {
+                                            
+                                            const names = window.chartChildrenNames[monthIndex][status];
+                                            return `Anak: ${names.join(', ')}`;
+                                        }
+                                        return '';
+                                    }
+                                }
                             },
                             scales: {
                                 xAxes: [{
@@ -1156,6 +1175,9 @@
                         fetch(`${endpointUrl}/${year}`)
                             .then(response => response.json())
                             .then(data => {
+                                // Store children names data globally for tooltip access
+                                window.chartChildrenNames = data.children_names;
+                                
                                 // Update data chart per status dan per bulan
                                 statusLabels.forEach((status, i) => {
                                     chart.data.datasets[i].data = [];
